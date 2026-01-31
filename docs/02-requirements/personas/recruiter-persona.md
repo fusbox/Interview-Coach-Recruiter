@@ -4,7 +4,7 @@
  
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 0.1 | 2025-01-29 | [Your Name] | Initial draft |
+| 0.1 | 2025-01-29 | Fu Chen | Initial draft |
  
 ---
  
@@ -12,9 +12,9 @@
  
 | Attribute | Value |
 |-----------|-------|
-| **Name** | "Riley the Recruiter" |
+| **Name** | "Raj the Recruiter" |
 | **Role** | Recruiter / Talent Acquisition Specialist |
-| **Organization** | [Company Name] (Staffing Firm) |
+| **Organization** | Rangam (Staffing Firm) |
 | **Experience** | 2-10 years in recruiting |
 | **Tech Comfort** | Moderate (uses ATS, LinkedIn, email daily) |
  
@@ -22,10 +22,10 @@
  
 ## Who They Are
  
-Riley is a recruiter at a staffing firm, responsible for sourcing, screening, and placing candidates with client companies. They work with a mix of roles—administrative, light industrial, healthcare support, customer service—and manage a pipeline of 20-50 active candidates at any time.
+Raj is a recruiter at a staffing firm, responsible for sourcing, screening, and placing candidates with client companies. They work with a mix of roles — administrative, light industrial, healthcare support, customer service — and manage a pipeline of 20-50 active candidates at any time.
  
 ### Work Environment
-- **Tools**: ATS (Bullhorn/JobDiva/similar), LinkedIn Recruiter, email, phone, video calls
+- **Tools**: ATS (TalentArbor), LinkedIn Recruiter, email, phone, video calls
 - **Workload**: High volume, fast-paced, metrics-driven (placements, submittals, fill rates)
 - **Collaboration**: Works with account managers, other recruiters, and client hiring managers
  
@@ -36,7 +36,7 @@ Riley is a recruiter at a staffing firm, responsible for sourcing, screening, an
 ### Primary Goals
 1. **Place candidates faster**: Reduce time-to-fill by having prepared candidates
 2. **Reduce no-shows and poor screenings**: Candidates who ghost or bomb screening calls waste time
-3. **Differentiate from competitors**: Offering prep tools makes [Company] stand out to candidates
+3. **Differentiate from competitors**: Offering prep tools makes Rangam stand out to candidates
 4. **Hit metrics**: Placements, submittals, client satisfaction scores
  
 ### What Success Looks Like
@@ -82,7 +82,7 @@ Riley is a recruiter at a staffing firm, responsible for sourcing, screening, an
 ## Key Scenarios
  
 ### Scenario 1: Regular Use
-Riley has a screening call tomorrow with Jordan. They:
+Raj has a screening call tomorrow with Jordan. They:
 1. Log into the tool
 2. Create an invite for a "Customer Service" role
 3. Copy the link
@@ -90,7 +90,7 @@ Riley has a screening call tomorrow with Jordan. They:
 5. Next day: Check if Jordan completed it and review highlights
  
 ### Scenario 2: Reviewing Results
-Before a screening call, Riley opens the tool to see:
+Before a screening call, Raj opens the tool to see:
 - Did the candidate complete the practice?
 - How did they perform overall?
 - Any specific strengths or areas of concern?

@@ -1,0 +1,1 @@
+Routes are adapters only; call orchestrators.

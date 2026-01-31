@@ -19,11 +19,11 @@ User stories organized by persona, prioritized using MoSCoW (Must/Should/Could/W
 ## Epic 1: Recruiter Invite Management
  
 ### US-1.1: Create Interview Invite ⭐ MUST
-> As a **Recruiter**, I want to **create an interview practice invite** so that **I can send it to a candidate**.
+> As **Raj (Recruiter)**, I want to **create an interview practice invite** so that **I can send it to a candidate**.
  
 **Acceptance Criteria:**
-- [ ] Recruiter can select a job role/type from a predefined list
-- [ ] Recruiter can optionally paste a job description
+- [ ] Recruiter can paste the job description
+- [ ] Recruiter can optionally select the job role from a predefined list
 - [ ] Recruiter can optionally customize session settings (question count, difficulty)
 - [ ] System generates a unique, shareable link
 - [ ] Link is easy to copy to clipboard
@@ -32,7 +32,7 @@ User stories organized by persona, prioritized using MoSCoW (Must/Should/Could/W
 ---
  
 ### US-1.2: View Invite List ⭐ MUST
-> As a **Recruiter**, I want to **see a list of invites I've created** so that **I can track which candidates I've sent practice sessions to**.
+> As **Raj**, I want to **see a list of invites I've created** so that **I can track which candidates I've sent practice sessions to**.
  
 **Acceptance Criteria:**
 - [ ] Recruiter sees a list of all invites they've created
@@ -61,19 +61,47 @@ User stories organized by persona, prioritized using MoSCoW (Must/Should/Could/W
 ---
  
 ## Epic 2: Recruiter Results Review
+
+**Note: The system displays a readiness label derived from the assigned Readiness Level (RL1–RL4).
  
 ### US-2.1: View Completed Session Summary ⭐ MUST
-> As a **Recruiter**, I want to **see a summary of a candidate's completed session** so that **I can quickly assess their preparation level**.
+> As a **Recruiter**, I want to **see a concise, interpretable summary of a candidate’s completed session** so that **I can quickly assess readiness and decide how to proceed with screening**.
  
-**Acceptance Criteria:**
+#### Acceptance Criteria
+
+**Summary View Requirements**
 - [ ] Recruiter can open results for any completed session
-- [ ] Summary shows: overall performance indicator, completion time, questions answered
-- [ ] Summary is viewable at a glance (< 30 seconds to understand)
- 
-**Open Question:** What form should the "performance indicator" take?
-- Option A: Qualitative (Ready / Needs Practice / Incomplete)
-- Option B: Quantitative (Score 1-100, or per-question scores)
-- Option C: Descriptive (Strengths/areas for development summary)
+- [ ] Summary is understandable in ≤ 30 seconds
+- [ ] Summary includes exactly one primary readiness indicator
+- [ ] Summary does not display numeric scores, percentages, grades, or rankings
+
+**Primary Readiness Indicator**
+- [ ] Displayed as a categorical band, one of:
+  - Ready
+  - Strong Potential
+  - More Practice Recommended
+  - Incomplete
+- [ ] Category definitions are consistent across all sessions
+- [ ] Indicator language emphasizes preparation, not assessment or hiring decisions
+
+**Supporting Signals (Structured, Non-Numeric)**
+- [ ] Display 2–3 short descriptors summarizing observed patterns
+- [ ] Descriptors are written in plain language (≤ 8 words each)
+- [ ] Descriptors reflect communication quality and preparedness, not “pass/fail”
+- [ ] Descriptors are generated using a constrained template (not free-form)
+
+**Descriptive Summary (Progressive Disclosure)**
+- [ ] Recruiter can optionally expand to view a short narrative summary
+- [ ] Narrative focuses on:
+  - Strengths demonstrated
+  - Areas to probe in live screening
+- [ ] Narrative avoids evaluative language like “score,” “rating,” or “grade”
+
+**Explicit Exclusions**
+- [ ] No overall numeric score
+- [ ] No per-question numeric scores
+- [ ] No comparative ranking between candidates
+- [ ] No hiring recommendations or submission decisions
  
 ---
  
@@ -90,7 +118,7 @@ User stories organized by persona, prioritized using MoSCoW (Must/Should/Could/W
 ## Epic 3: Candidate Session Access
  
 ### US-3.1: Access Session via Link ⭐ MUST
-> As a **Candidate**, I want to **access my practice session by clicking a link** so that **I don't need to create an account**.
+> As **Jordan (Candidate)**, I want to **access my practice session by clicking a link** so that **I don't need to create an account**.
  
 **Acceptance Criteria:**
 - [ ] Candidate clicks link and lands on session start page
@@ -106,7 +134,7 @@ User stories organized by persona, prioritized using MoSCoW (Must/Should/Could/W
 **Acceptance Criteria:**
 - [ ] Landing page explains: what this is, how long it takes, how it helps
 - [ ] Clear that this is practice, not a test
-- [ ] Shows who sent the invite (recruiter/company branding)
+- [ ] Shows who sent the invite (recruiter/Rangam branding)
 - [ ] Privacy information is accessible
  
 ---

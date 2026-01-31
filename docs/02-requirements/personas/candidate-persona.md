@@ -4,7 +4,7 @@
  
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 0.1 | 2025-01-29 | [Your Name] | Initial draft |
+| 0.1 | 2025-01-29 | Fu Chen | Initial draft |
  
 ---
  
@@ -22,7 +22,7 @@
  
 ## Who They Are
  
-Jordan is actively looking for work and has connected with a recruiter at [Company Name]. They may be:
+Jordan is actively looking for work and has connected with a recruiter at Rangam. They may be:
 - Recently unemployed and urgently seeking work
 - Employed but looking for a better opportunity
 - Re-entering the workforce after a gap
@@ -38,7 +38,7 @@ Jordan is actively looking for work and has connected with a recruiter at [Compa
 | **Gap returners** | Anxiety about explaining gaps, confidence issues |
  
 ### Technical Context
-- **Primary device**: Smartphone (60%+ of candidates)
+- **Primary device**: Smartphone (90%+ of candidates)
 - **Connectivity**: May be unreliable (library wifi, data limits)
 - **Distractions**: May complete at home with interruptions, or in public spaces
  

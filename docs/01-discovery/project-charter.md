@@ -2,9 +2,9 @@
  
 ## Document Control
  
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 0.1 | 2025-01-29 | [Your Name] | Initial draft |
+| Version | Date       | Author  | Changes       |
+|---------|------------|---------|-------------|
+| 0.1     | 2025-01-29 | Fu Chen | Initial draft |
  
 ---
  
@@ -14,7 +14,7 @@
 **Interview Coach for Recruiters** (working title)
  
 ### 1.2 Project Summary
-A standalone web application that enables recruiters at [Company Name] to invite job candidates to complete AI-powered mock screening interviews. The platform provides candidates with a supportive practice environment while giving recruiters visibility into candidate preparation and readiness.
+A standalone web application that enables recruiters at Rangam to invite job candidates to complete AI-powered mock screening interviews. The platform provides candidates with a supportive practice environment while giving recruiters visibility into candidate preparation and readiness.
  
 ### 1.3 Background & Context
 This project originated from an interview coaching application developed for integration into a Medicaid member job portal (MCO partnership). The core interview simulation and AI feedback engine has been validated through internal testing.
@@ -24,7 +24,7 @@ This "Recruiter Path" extracts and adapts the proven interview flow for use by s
 2. **Validation**: UAT of the core mock interview flow and AI feedback quality
  
 ### 1.4 Strategic Alignment
-- Differentiates [Company Name] from competitors by offering candidate preparation tools
+- Differentiates Rangam from competitors by offering candidate preparation tools
 - Reduces recruiter time spent on unprepared candidates
 - Creates potential future revenue stream (MSP licensing, ATS integration)
 - Demonstrates innovation capability to clients and partners
@@ -36,7 +36,7 @@ This "Recruiter Path" extracts and adapts the proven interview flow for use by s
 ### 2.1 Business Objectives
  
 | Objective | Measurable Outcome |
-|-----------|-------------------|
+|-----------|--------------------|
 | Improve candidate preparation | Recruiters report candidates are better prepared for screening calls |
 | Increase recruiter efficiency | Reduction in "no-show" or poorly prepared screening calls |
 | Validate core interview engine | AI feedback quality confirmed through recruiter/candidate feedback |
@@ -44,14 +44,14 @@ This "Recruiter Path" extracts and adapts the proven interview flow for use by s
  
 ### 2.2 Success Metrics
  
-> _TODO: Define specific targets with stakeholders_
- 
 | Metric | Target | Measurement Method |
 |--------|--------|-------------------|
-| Candidate completion rate | ≥ X% | Sessions completed / invites sent |
-| Recruiter adoption | X recruiters actively using | Weekly active users |
-| Candidate satisfaction | ≥ X/5 rating | Post-session survey |
-| Recruiter satisfaction | ≥ X/5 rating | Monthly survey |
+| Candidate completion rate | ≥ 60% | Sessions completed / invites sent |
+| Recruiter adoption | ≥ 40% of Pilot Group | Weekly active users (1+ invite sent) |
+| Candidate satisfaction | ≥ 4.2/5 rating | Post-session survey |
+| Recruiter satisfaction | ≥ 4.0/5 rating | Monthly survey |
+| **Time to Invite** (Efficiency) | < 2 minutes | Time from login to link generation |
+| **Feedback Utility** (Quality) | ≥ 80% Positive | "Did this feedback help you?" (Yes/No) |
  
 ### 2.3 Non-Goals (Explicit Exclusions)
  
@@ -106,13 +106,13 @@ This "Recruiter Path" extracts and adapts the proven interview flow for use by s
  
 | Stakeholder | Role | Interest | Influence | Engagement Level |
 |-------------|------|----------|-----------|------------------|
-| [Name] | Project Sponsor | Strategic direction, budget | High | Inform |
-| [Name] | Product Owner | Requirements, priorities | High | Collaborate |
+| [Nish] | Project Sponsor | Strategic direction, budget | High | Inform |
+| [Fu] | Product Owner | Requirements, priorities | High | Collaborate |
 | Recruiting Team Lead | Primary User Rep | Usability, adoption | High | Collaborate |
 | Recruiters | End Users | Daily usability | Medium | Consult |
 | Candidates | End Users | Experience quality | Medium | Test |
 | IT/Security | Technical oversight | Compliance, security | Medium | Consult |
-| [You] | Developer | Technical implementation | High | Responsible |
+| [Fu] | Developer | Technical implementation | High | Responsible |
  
 ---
  
@@ -152,16 +152,14 @@ This "Recruiter Path" extracts and adapts the proven interview flow for use by s
  
 ## 7. High-Level Timeline
  
-> _TODO: Define with stakeholders_
- 
 | Phase | Duration | Key Deliverables |
 |-------|----------|------------------|
-| **Discovery & Design** | X weeks | Charter, Personas, User Stories, Wireframes |
-| **Architecture & Setup** | X weeks | Technical design, infrastructure, CI/CD |
-| **Core Development** | X weeks | MVP features, integration |
-| **Testing & QA** | X weeks | UAT, bug fixes, security review |
-| **Pilot Launch** | X weeks | Limited rollout to select recruiters |
-| **Full Launch** | X weeks | General availability |
+| **Discovery & Design** | 1 week | Charter, Personas, User Stories, Wireframes |
+| **Architecture & Setup** | 1 week | Technical design, infrastructure, CI/CD |
+| **Core Development** | 4 weeks | MVP features, integration |
+| **Testing & QA** | 1 week | UAT, bug fixes, security review |
+| **Pilot Launch** | 2 weeks | Limited rollout to select recruiters |
+| **Full Launch** | TBD | General availability |
  
 ---
  
@@ -170,7 +168,7 @@ This "Recruiter Path" extracts and adapts the proven interview flow for use by s
 | Term | Definition |
 |------|------------|
 | **Candidate** | Job seeker invited by a recruiter to practice |
-| **Recruiter** | [Company] staff member who invites and reviews candidates |
+| **Recruiter** | Rangam staff member who invites and reviews candidates |
 | **Session** | A complete mock interview (multiple questions) |
 | **Invite** | A shareable link that grants candidate access to a session |
 | **Readiness Signal** | Indicator of candidate's preparation level (scope TBD) |

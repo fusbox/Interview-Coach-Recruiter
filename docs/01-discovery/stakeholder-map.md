@@ -2,9 +2,9 @@
  
 ## Document Control
  
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 0.1 | 2025-01-29 | [Your Name] | Initial draft |
+| Version | Date       | Author  | Changes       |
+|---------|------------|---------|---------------|
+| 0.1     | 2025-01-29 | Fu Chen | Initial draft |
  
 ---
  
@@ -13,8 +13,8 @@
 ### Recruiters (Internal)
 | Attribute | Details |
 |-----------|---------|
-| **Who** | [Company Name] recruiting staff |
-| **Count** | ~[X] recruiters |
+| **Who** | Rangam recruiting staff |
+| **Count** | ~[20] recruiters |
 | **Interest** | Tool that helps them place candidates faster |
 | **Influence** | High (adoption determines success) |
 | **Concerns** | Learning curve, time investment, candidate experience |
@@ -39,7 +39,7 @@
 ### Project Sponsor
 | Attribute | Details |
 |-----------|---------|
-| **Who** | [Name/Title] |
+| **Who** | [Nish/CEO] |
 | **Interest** | ROI, strategic differentiation, innovation showcase |
 | **Influence** | High (budget, go/no-go decisions) |
 | **Concerns** | Cost, timeline, demonstrable value |
@@ -99,7 +99,7 @@
  
 ## 5. Open Questions
  
-- [ ] Who is the official Project Sponsor?
-- [ ] Who is the Product Owner (decision maker for requirements)?
+- [x] Who is the official Project Sponsor?
+- [x] Who is the Product Owner (decision maker for requirements)?
 - [ ] Which recruiters should be in the pilot group?
 - [ ] What is the approval process for go-live?

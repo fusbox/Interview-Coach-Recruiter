@@ -1,0 +1,1 @@
+Domain is framework-agnostic; no Next/React/Supabase imports.
