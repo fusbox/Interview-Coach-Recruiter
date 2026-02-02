@@ -4,7 +4,7 @@
  
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 0.1 | 2025-01-29 | [Your Name] | Initial draft |
+| 0.1 | 2025-01-29 | Fu Chen | Initial draft |
  
 ---
  
@@ -19,7 +19,7 @@ User stories organized by persona, prioritized using MoSCoW (Must/Should/Could/W
 ## Epic 1: Recruiter Invite Management
  
 ### US-1.1: Create Interview Invite ⭐ MUST
-> As **Raj (Recruiter)**, I want to **create an interview practice invite** so that **I can send it to a candidate**.
+> As a **Recruiter**, I want to **create an interview practice invite** so that **I can send it to a candidate**.
  
 **Acceptance Criteria:**
 - [ ] Recruiter can paste the job description
@@ -32,7 +32,7 @@ User stories organized by persona, prioritized using MoSCoW (Must/Should/Could/W
 ---
  
 ### US-1.2: View Invite List ⭐ MUST
-> As **Raj**, I want to **see a list of invites I've created** so that **I can track which candidates I've sent practice sessions to**.
+> As a **Recruiter**, I want to **see a list of invites I've created** so that **I can track which candidates I've sent practice sessions to**.
  
 **Acceptance Criteria:**
 - [ ] Recruiter sees a list of all invites they've created
@@ -118,7 +118,7 @@ User stories organized by persona, prioritized using MoSCoW (Must/Should/Could/W
 ## Epic 3: Candidate Session Access
  
 ### US-3.1: Access Session via Link ⭐ MUST
-> As **Jordan (Candidate)**, I want to **access my practice session by clicking a link** so that **I don't need to create an account**.
+> As a **Candidate**, I want to **access my practice session by clicking a link** so that **I don't need to create an account**.
  
 **Acceptance Criteria:**
 - [ ] Candidate clicks link and lands on session start page
