@@ -25,6 +25,13 @@ export function createSession(
     return newSession;
 }
 
+export function addQuestions(session: InterviewSession, questions: Question[]): InterviewSession {
+    return {
+        ...session,
+        questions: questions
+    };
+}
+
 export function startSession(session: InterviewSession): InterviewSession {
     if (session.status !== "NOT_STARTED") {
         throw new Error("Session has already started");

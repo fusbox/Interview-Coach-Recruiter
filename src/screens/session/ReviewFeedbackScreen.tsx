@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Question, AnalysisResult } from "@/lib/domain/types"
-import { ArrowRight, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react"
+import { ArrowRight, CheckCircle2, Lightbulb, AlertTriangle } from "lucide-react"
 
 interface ReviewFeedbackScreenProps {
     question: Question;
@@ -10,14 +12,13 @@ interface ReviewFeedbackScreenProps {
 
 export default function ReviewFeedbackScreen({ question, analysis, onNext }: ReviewFeedbackScreenProps) {
     if (!analysis) {
-        // Fallback or Error state if analysis is missing in REVIEWING state
-        return <div className="p-8 text-center">Loading feedback...</div>;
+        return <div className="p-8 text-center text-muted-foreground">Loading feedback...</div>;
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
+        <div className="min-h-screen bg-background pb-20">
             {/* Header */}
-            <header className="px-6 py-4 bg-white border-b sticky top-0 z-10">
+            <header className="px-6 py-4 bg-card border-b sticky top-0 z-10">
                 <div className="max-w-3xl mx-auto flex justify-between items-center">
                     <h1 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                         Feedback Review
@@ -28,83 +29,86 @@ export default function ReviewFeedbackScreen({ question, analysis, onNext }: Rev
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto p-6 space-y-8">
+            <main className="max-w-3xl mx-auto p-6 space-y-6">
 
-                {/* Context Card */}
-                <section className="bg-white rounded-xl p-6 border shadow-sm">
-                    <div className="text-xs text-muted-foreground uppercase font-bold mb-2">
-                        The Question
-                    </div>
-                    <h2 className="text-xl font-medium text-foreground">
-                        {question.text}
-                    </h2>
-                </section>
+                {/* Question Context */}
+                <Card>
+                    <CardHeader>
+                        <CardDescription className="uppercase font-bold text-xs tracking-widest">
+                            The Question
+                        </CardDescription>
+                        <CardTitle className="text-xl font-medium tracking-tight">
+                            {question.text}
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
 
-                {/* Coach Reaction */}
-                {analysis.coachReaction && (
-                    <section className="bg-blue-50/50 rounded-xl p-6 border border-blue-100">
-                        <div className="flex items-start gap-3">
-                            <div className="mt-1 bg-white p-2 rounded-full border shadow-sm">
-                                <span className="text-xl">🤖</span>
-                            </div>
+                {/* Coach Reaction & Band */}
+                <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader>
+                        <div className="flex justify-between items-start">
                             <div className="space-y-1">
-                                <h3 className="font-semibold text-blue-900">Coach's Take</h3>
-                                <p className="text-blue-800/80 leading-relaxed">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    Coach's Take
+                                </CardTitle>
+                                <CardDescription className="text-base text-foreground/90 font-medium">
                                     {analysis.coachReaction}
-                                </p>
+                                </CardDescription>
+                            </div>
+
+                            {/* Readiness Badge */}
+                            <div className="flex flex-col items-end gap-1">
+                                {analysis.readinessBand === 'RL4' && <Badge className="bg-primary hover:bg-primary/90">Role Model</Badge>}
+                                {analysis.readinessBand === 'RL3' && <Badge className="bg-success hover:bg-success/90">Ready</Badge>}
+                                {analysis.readinessBand === 'RL2' && <Badge className="bg-warning text-warning-foreground hover:bg-warning/90">Potential</Badge>}
+                                {analysis.readinessBand === 'RL1' && <Badge className="bg-destructive hover:bg-destructive/90">Not Ready</Badge>}
+                                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Readiness</span>
                             </div>
                         </div>
-                    </section>
-                )}
+                    </CardHeader>
+                </Card>
 
-                {/* Key Feedback Grid */}
+                {/* Feedback Grid */}
                 <div className="grid gap-6 md:grid-cols-2">
                     {/* Strengths */}
-                    <div className="space-y-4">
-                        <h3 className="font-semibold flex items-center gap-2 text-green-700">
-                            <CheckCircle2 className="w-5 h-5" />
-                            Highlights
-                        </h3>
-                        <ul className="space-y-3">
-                            {analysis.feedback?.slice(0, 3).map((point, i) => (
-                                <li key={i} className="bg-white p-4 rounded-lg border text-sm leading-relaxed shadow-sm">
-                                    {point}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base font-semibold flex items-center gap-2 text-success">
+                                <CheckCircle2 className="w-5 h-5" />
+                                Highlights
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ul className="space-y-3">
+                                {(analysis.strengths || []).map((point, i) => (
+                                    <li key={i} className="text-sm text-muted-foreground leading-relaxed">
+                                        • {point}
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                    </Card>
 
-                    {/* Improvements (Delivery Tips or Missing Elements) */}
-                    <div className="space-y-4">
-                        <h3 className="font-semibold flex items-center gap-2 text-amber-700">
-                            <AlertCircle className="w-5 h-5" />
-                            Opportunities
-                        </h3>
-                        <ul className="space-y-3">
-                            {(analysis.deliveryTips || analysis.missingElements || []).slice(0, 3).map((point, i) => (
-                                <li key={i} className="bg-white p-4 rounded-lg border text-sm leading-relaxed shadow-sm">
-                                    {point}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    {/* Opportunities */}
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base font-semibold flex items-center gap-2 text-warning">
+                                <Lightbulb className="w-5 h-5" />
+                                Opportunities
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ul className="space-y-3">
+                                {(analysis.opportunities || []).map((point, i) => (
+                                    <li key={i} className="text-sm text-muted-foreground leading-relaxed">
+                                        • {point}
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                    </Card>
                 </div>
-
-                {/* Score / Dimension (Optional for V1) */}
-                {analysis.rating && (
-                    <div className="text-center pt-8 border-t">
-                        <span className="text-muted-foreground text-sm uppercase tracking-widest font-bold">
-                            Rating: {analysis.rating}
-                        </span>
-                    </div>
-                )}
             </main>
-
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 md:hidden">
-                <Button onClick={onNext} size="lg" className="w-full">
-                    Next Question
-                </Button>
-            </div>
         </div>
     )
 }

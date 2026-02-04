@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
-import { createSession } from "@/lib/server/session/orchestrator";
+import { createSession, addQuestions } from "@/lib/server/session/orchestrator";
+import { QuestionService } from "@/lib/server/services/question-service";
+import { FileSessionRepository } from "@/lib/server/infrastructure/file-session-repository";
 import { InitSessionSchema } from "@/lib/domain/schemas";
-import { InterviewSession } from "@/lib/domain/types";
+
+// V1: Use File Repository
+const repository = new FileSessionRepository();
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
 
-        // Validate Input
+        // 1. Validation
         const parseResult = InitSessionSchema.safeParse(body);
         if (!parseResult.success) {
             return NextResponse.json(
@@ -16,22 +20,23 @@ export async function POST(request: Request) {
             );
         }
 
-        // Domain Logic
-        // In a real app, this would also save to DB
-        const session: InterviewSession = createSession(parseResult.data);
+        // 2. Orchestration (Pure Domain)
+        let session = createSession(parseResult.data);
 
-        // For V1 Demo: We add the mock questions HERE since the "createSession" in pure logic 
-        // was empty by design (separation of concerns).
-        session.questions = [
-            { id: '1', text: 'Tell me about yourself.', category: 'Intro', index: 0 },
-            { id: '2', text: 'What is your greatest weakness?', category: 'Behavioral', index: 1 }
-        ];
+        // 3. Service Logic (Question Generation)
+        // Decoupled from API route -> delegated to service
+        const questions = await QuestionService.generateQuestions(session.role || "General");
+        session = addQuestions(session, questions);
+
+        // 4. Persistence
+        await repository.create(session);
 
         return NextResponse.json(session);
+
     } catch (error) {
-        console.error("Session Start Error:", error);
+        console.error("Link Start Error:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { error: "Failed to start session" },
             { status: 500 }
         );
     }

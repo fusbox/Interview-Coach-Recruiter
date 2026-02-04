@@ -7,6 +7,15 @@ export type SessionStatus =
     | 'COMPLETED'
     | 'ERROR';
 
+export interface Blueprint {
+    title: string;
+    competencies: Array<{
+        id: string;
+        title: string;
+        description: string;
+    }>;
+}
+
 /**
  * Canonical Question Entity
  */
@@ -50,34 +59,32 @@ export interface Answer {
  */
 export interface AnalysisResult {
     transcript?: string;
-    feedback: string[];
-    rating: string;
+
+    // Competency Model Signals
+    readinessBand: 'RL1' | 'RL2' | 'RL3' | 'RL4';
+    confidence?: 'Low' | 'Medium' | 'High';
+
+    // Feedback
+    coachReaction: string;
+    strengths: string[];
+    opportunities: string[];
+    missingKeyPoints?: string[];
+
+    // Legacy / Extended Support (Optional)
+    strongResponse?: string;
+    feedback?: string[]; // Deprecated but might be referenced in legacy files
+    rating?: string; // Deprecated
+    whyThisWorks?: any;
+    keyTerms?: string[];
+    deliveryTips?: string[];
+    missingElements?: string[];
+
+    // Legacy fields to prevent breaking unknown consumers
     answerScore?: number;
     deliveryStatus?: string;
-    deliveryTips?: string[];
-    keyTerms: string[];
-    dimensionScores?: Array<{
-        dimensionId: string;
-        score: number;
-        note: string;
-    }>;
     evidenceExtracts?: string[];
-    missingElements?: string[];
     biggestUpgrade?: string;
     redoPrompt?: string;
-    coachReaction: string;
-    strongResponse: string;
-    whyThisWorks: {
-        lookingFor: string;
-        pointsToCover: string[];
-        answerFramework: string;
-        industrySpecifics: {
-            metrics: string;
-            tools: string;
-        };
-        mistakesToAvoid: string[];
-        proTip: string;
-    };
 }
 
 /**

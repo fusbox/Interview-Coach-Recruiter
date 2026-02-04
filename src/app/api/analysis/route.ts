@@ -1,21 +1,8 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI, Type } from "@google/genai";
 import { AnalyzeAnswerSchema } from "@/lib/domain/schemas";
-import { buildAnalysisContext } from "@/lib/ai/prompts";
-
-// Initialize GenAI Client
-// NOTE: Make sure GEMINI_API_KEY is in .env.local
-const apiKey = process.env.GEMINI_API_KEY;
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+import { AIService } from "@/lib/server/services/ai-service";
 
 export async function POST(request: Request) {
-    if (!ai) {
-        return NextResponse.json(
-            { error: "Server Configuration Error: Missing API Key" },
-            { status: 500 }
-        );
-    }
-
     try {
         const body = await request.json();
 
@@ -30,38 +17,30 @@ export async function POST(request: Request) {
 
         const { question, input, blueprint, intakeData } = parseResult.data;
 
-        // Construct Prompt
-        const systemPrompt = buildAnalysisContext(question, blueprint, intakeData);
-
-        // Prepare Content
-        let contentParts = [];
-        if (typeof input === "string") {
-            contentParts.push({ text: `User's Answer: "${input}"` });
-        } else {
-            // Handle Audio logic later (requires blob handling)
-            return NextResponse.json({ error: "Audio not yet supported" }, { status: 501 });
+        if (typeof input !== "string") {
+            return NextResponse.json({ error: "Audio not supported yet" }, { status: 501 });
         }
 
-        contentParts.push({ text: systemPrompt });
+        // Delegate to Service
+        // Adapter: Construct a minimal Question object from the string input
+        const questionObj = {
+            id: parseResult.data.questionId || "temp",
+            text: question,
+            category: "General",
+            index: 0
+        };
 
-        // Generate
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash-exp', // Or generic-flash
-            contents: { parts: contentParts },
-            config: {
-                responseMimeType: 'application/json',
-                // In a real implementation, we would define the full JSON schema here
-                // For V1, we rely on the prompt instructions + json mode
-            },
-        });
+        const analysis = await AIService.analyzeAnswer(
+            questionObj as any,
+            input as string,
+            blueprint as any,
+            intakeData
+        );
 
-        const text = response.text;
-        if (!text) throw new Error("No output from AI");
-
-        return NextResponse.json(JSON.parse(text));
+        return NextResponse.json(analysis);
 
     } catch (error) {
-        console.error("Analysis Error:", error);
+        console.error("Analysis API Error:", error);
         return NextResponse.json(
             { error: "Analysis Failed" },
             { status: 500 }
