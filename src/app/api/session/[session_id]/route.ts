@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
-import { FileSessionRepository } from "@/lib/server/infrastructure/file-session-repository";
+import { SupabaseSessionRepository } from "@/lib/server/infrastructure/supabase-session-repository";
 
-const repository = new FileSessionRepository();
+const repository = new SupabaseSessionRepository();
+
+export async function GET(
+    request: Request,
+    { params }: { params: { session_id: string } }
+) {
+    const session = await repository.get(params.session_id);
+    if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    return NextResponse.json(session);
+}
 
 export async function PATCH(
     request: Request,
@@ -25,6 +34,7 @@ export async function PATCH(
         return NextResponse.json(updatedSession);
 
     } catch (error) {
-        return NextResponse.json({ error: "Update failed" }, { status: 500 });
+        console.error("[API] Session Update PATCH Error:", error);
+        return NextResponse.json({ error: "Update failed", details: String(error) }, { status: 500 });
     }
 }

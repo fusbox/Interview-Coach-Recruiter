@@ -104,4 +104,13 @@ export interface InterviewSession {
 
     // Minimal config truth
     initialsRequired: boolean;
+    enteredInitials?: string;
+
+    // Identity
+    candidate?: {
+        firstName: string;
+        lastName: string;
+        email: string;
+    };
+    engagedTimeSeconds?: number;
 }

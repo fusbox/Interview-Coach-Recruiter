@@ -65,7 +65,8 @@ export function nextQuestion(session: InterviewSession): InterviewSession {
 export function submitAnswer(
     session: InterviewSession,
     questionId: string,
-    answerText: string
+    answerText: string,
+    analysis?: any
 ): InterviewSession {
     // Basic state update - in a real app, this might trigger eval
     const updatedAnswers = {
@@ -73,13 +74,28 @@ export function submitAnswer(
         [questionId]: {
             questionId,
             transcript: answerText,
-            submittedAt: Date.now()
+            submittedAt: Date.now(),
+            analysis: analysis // Persist analysis if provided
         }
     };
 
     return {
         ...session,
         answers: updatedAnswers,
-        status: "AWAITING_EVALUATION" // Triggers the "Now" selector to show pending screen
+        status: analysis ? "REVIEWING" : "AWAITING_EVALUATION"
+    };
+}
+
+export function getAnalysisContext(session: InterviewSession, questionId: string) {
+    const question = session.questions.find(q => q.id === questionId);
+    if (!question) return null;
+    return { question };
+}
+
+export function submitInitials(session: InterviewSession, initials: string): InterviewSession {
+    return {
+        ...session,
+        enteredInitials: initials,
+        initialsRequired: false // Gate passed
     };
 }

@@ -1,31 +1,40 @@
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Question, AnalysisResult } from "@/lib/domain/types"
-import { ArrowRight, CheckCircle2, Lightbulb, AlertTriangle } from "lucide-react"
+import { ArrowRight, CheckCircle2, Lightbulb, RotateCcw, Save } from "lucide-react"
 
 interface ReviewFeedbackScreenProps {
     question: Question;
     analysis?: AnalysisResult;
     onNext: () => void;
+    onRetry: () => void;
 }
 
-export default function ReviewFeedbackScreen({ question, analysis, onNext }: ReviewFeedbackScreenProps) {
+export default function ReviewFeedbackScreen({ question, analysis, onNext, onRetry }: ReviewFeedbackScreenProps) {
+    const [saved, setSaved] = useState(false);
+
+    const handleSave = () => {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+    };
+
     if (!analysis) {
         return <div className="p-8 text-center text-muted-foreground">Loading feedback...</div>;
     }
 
     return (
-        <div className="min-h-screen bg-background pb-20">
+        <div className="min-h-screen bg-background pb-32">
             {/* Header */}
             <header className="px-6 py-4 bg-card border-b sticky top-0 z-10">
                 <div className="max-w-3xl mx-auto flex justify-between items-center">
                     <h1 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                         Feedback Review
                     </h1>
-                    <Button onClick={onNext} className="gap-2">
-                        Next Question <ArrowRight className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                        {/* Mobile Header Actions? Maybe keep it clean */}
+                    </div>
                 </div>
             </header>
 
@@ -109,6 +118,30 @@ export default function ReviewFeedbackScreen({ question, analysis, onNext }: Rev
                     </Card>
                 </div>
             </main>
+
+            {/* Persistent Footer Actions */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-20 shadow-lg">
+                <div className="max-w-3xl mx-auto flex justify-between items-center">
+
+                    <Button variant="outline" onClick={onRetry} className="gap-2">
+                        <RotateCcw className="w-4 h-4" /> Retry Response
+                    </Button>
+
+                    <div className="flex gap-4 items-center">
+                        <Button
+                            variant="ghost"
+                            onClick={handleSave}
+                            className={`gap-2 ${saved ? "text-green-600" : "text-muted-foreground"}`}
+                        >
+                            <Save className="w-4 h-4" /> {saved ? "Progress Saved" : "Save Progress"}
+                        </Button>
+
+                        <Button onClick={onNext} size="lg" className="px-8 gap-2">
+                            Continue <ArrowRight className="w-4 h-4" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

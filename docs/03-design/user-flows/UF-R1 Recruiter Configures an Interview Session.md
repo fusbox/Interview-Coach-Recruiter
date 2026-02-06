@@ -1,124 +1,149 @@
-# User Flow: UF-C4 — Candidate Retries or Revises a Question
+# User Flow: UF-R1 — Recruiter Configures Interview Session
 
 ---
 
 ## Summary
 
-After viewing feedback for a question, the candidate may be given the option to retry or revise their response. This flow defines how retries are offered, constrained, and executed without overwriting prior attempts or altering question intent.
+A recruiter creates an interview practice session by configuring candidate details and defining a structured set of interview questions derived from TA. The system cleans and normalizes the input, presents a preview for confirmation, and creates an immutable QuestionSetSnapshot that will drive the candidate experience.
 
 ---
 
 ## Primary Actor
 
-* Candidate
+* Recruiter
 
 ---
 
 ## Preconditions
 
-* Feedback has been displayed for the current question.
-* Session state allows retry according to policy.
-* Question content and order are immutable.
+* Recruiter is authenticated.
+* Recruiter has access to a job requirement in TA.
+* Candidate name and email are available.
 
 ---
 
 ## Main Flow
 
-### **Entry Condition:** Candidate is viewing question feedback
+### **Entry Condition:** Recruiter starts invite creation
 
-> /api/session/{session_id}/now
-
----
-
-### **Decision:** Is retry allowed for this question?
-
-* If **no**, show continue-only option
-* If **yes**, present retry option
+> /recruiter/interview-coach/create
 
 ---
 
-### **Screen:** Feedback with Retry Option (if allowed)
+### **Screen:** Configure Interview — Candidate & Role Details
 
-* Question label displayed: `Qn — Category`
-* Previously submitted response shown read-only
-* Coaching feedback remains visible
-* Retry option presented with neutral framing
-
----
-
-### **Retry Framing Copy (Example)**
-
-* “You can revise your answer to try a different approach.”
-* “Your earlier response will be saved.”
+* Candidate display name
+* Candidate email
+* Req ID
+* Job title
+* Optional job description (context only)
 
 ---
 
-### **Decision:** Candidate chooses next action
+### **Screen:** Configure Interview — Question Entry
 
-* If **continue**, proceed to next question
-* If **retry**, start new attempt
+Recruiter completes structured question fields:
 
----
+* **STAR (required, one each):**
 
-### **Action:** Candidate initiates retry
+  * Situation
+  * Task
+  * Action
+  * Result
+* **PERMA (required, one each):**
 
-> /api/session/{session_id}/questions/{question_id}/retry
+  * Positive Emotion
+  * Engagement
+  * Relationships
+  * Meaning
+  * Accomplishment
+* **Technical (required, one minimum):**
 
----
+  * Ability to add additional Technical questions
+* **Other (optional):**
 
-### **System Action:** Initialize new attempt
+  * Ability to add additional questions
 
-* Increment attempt counter for this question
-* Preserve all prior attempts as read-only
-* Reset answer input for the new attempt
-
----
-
-### **Screen:** Question Retry
-
-* Same question text and label displayed
-* Empty answer input
-* Autosave enabled
-* Clear indication this is a new attempt
+Each field is plain text. Recruiter is guided not to include numbering or category names in the question text.
 
 ---
 
-### **Candidate Behavior:** Revises response
+### **Action:** Recruiter requests preview
 
-* Candidate types, edits, and reflects
-* Draft autosaved as in UF-C2
-
----
-
-### **Action:** Candidate submits revised response
-
-> /api/session/{session_id}/questions/{question_id}/submit
+> /api/interview/preview
 
 ---
 
-### **System Action:** Finalize revised attempt
+### **System Action:** Clean and normalize questions
 
-* Lock revised response
-* Queue evaluation for the new attempt
-* Transition state to `AWAITING_EVAL`
+* Trim whitespace
+* Strip bullets, numbering, and category prefixes
+* Reject empty or invalid questions
+* Flag duplicates (non-blocking)
+* Assign deterministic order and labels
+
+---
+
+### **Screen:** Preview Questions
+
+For each question:
+
+* Label displayed: `Q# — Category`
+* Cleaned question text (read-only by default)
+* Per-question **Edit** option (inline, nav-free)
+
+---
+
+### **Action:** Recruiter edits questions (optional)
+
+* Unlock single question text field
+* Save re-applies cleaning rules
+* Cancel restores prior value
+
+---
+
+### **Action:** Recruiter confirms and creates invite
+
+> /api/interview/invite/create
+
+---
+
+### **System Action:** Create QuestionSetSnapshot
+
+* Generate `question_set_id` and `version`
+* Persist ordered, cleaned questions
+* Mark snapshot immutable
+
+---
+
+### **System Action:** Create invite
+
+* Bind invite to candidate and QuestionSetSnapshot
+* Generate invite token and link
+
+---
+
+### **Screen:** Invite Created
+
+* Display invite link with copy action
+* Show summary:
+
+  * Candidate name
+  * Candidate email
+  * Req ID
+  * Job title
 
 ---
 
 ## Postconditions
 
-* A new attempt exists for the question
-* Prior attempts remain intact and immutable
-* Evaluation proceeds for the latest attempt only
+* An immutable QuestionSetSnapshot exists.
+* An invite link is available for the recruiter to send externally.
 
 ---
 
 ## Invariants
 
-* Retry never overwrites prior answers
-* Question text, order, and category never change
-* Feedback is always tied to a specific attempt
-* No comparative scoring between attempts is shown
-
----
-
-This flow allows candidates to practice and improve intentionally, while preserving transparency, history, and evaluative integrity.
+* Question content is immutable after confirmation.
+* TA is not queried during candidate runtime.
+* Recruiter does not see or influence candidate coaching feedback.

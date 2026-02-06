@@ -27,7 +27,7 @@ export function selectNow(session?: InterviewSession): NowState {
 
     if (status === "ERROR") {
         screen = "ERROR";
-    } else if (initialsRequired && !hasInitials) {
+    } else if (initialsRequired) {
         screen = "INITIALS";
     } else if (status === "NOT_STARTED") {
         screen = "LANDING";
@@ -35,12 +35,21 @@ export function selectNow(session?: InterviewSession): NowState {
         screen = "SUMMARY";
     } else {
         // In-Session Logic
-        if (status === "AWAITING_EVALUATION") {
+        // In-Session Logic
+        // Determine sub-state based on Data, not just Status Enum (which is limited in DB)
+        if (currentAns?.analysis) {
+            screen = "REVIEW_FEEDBACK";
+        } else if (status === "AWAITING_EVALUATION") {
+            // Transient state (memory only usually)
+            screen = "PENDING_EVALUATION";
+        } else if (currentAns?.submittedAt && !currentAns.analysis) {
+            // If answer submitted but no analysis, we are effectively pending evaluation
+            // This covers the case where DB says "IN_SESSION" but we are waiting for AI
             screen = "PENDING_EVALUATION";
         } else if (status === "REVIEWING") {
             screen = "REVIEW_FEEDBACK";
         } else {
-            // Default to Active Question
+            // Default: User needs to answer
             screen = "ACTIVE_QUESTION";
         }
     }
@@ -49,7 +58,7 @@ export function selectNow(session?: InterviewSession): NowState {
         isLoaded: true,
         status,
         role: session.role,
-        requiresInitials: initialsRequired && !hasInitials,
+        requiresInitials: initialsRequired,
         canStart: status === "NOT_STARTED",
         isComplete,
         currentQuestionId: currentQ?.id,

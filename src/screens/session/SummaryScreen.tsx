@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Home } from "lucide-react"
+import { CheckCircle, RotateCcw } from "lucide-react"
 
 export default function SummaryScreen() {
     return (
@@ -19,7 +19,7 @@ export default function SummaryScreen() {
 
                 <div className="pt-4">
                     <Button size="lg" className="w-full gap-2" variant="outline" onClick={() => window.location.href = '/'}>
-                        <Home className="w-4 h-4" /> Return to Home
+                        <RotateCcw className="w-4 h-4" /> Practice Again
                     </Button>
                 </div>
             </div>

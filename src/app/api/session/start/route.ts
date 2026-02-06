@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { createSession, addQuestions } from "@/lib/server/session/orchestrator";
 import { QuestionService } from "@/lib/server/services/question-service";
-import { FileSessionRepository } from "@/lib/server/infrastructure/file-session-repository";
+import { SupabaseSessionRepository } from "@/lib/server/infrastructure/supabase-session-repository";
 import { InitSessionSchema } from "@/lib/domain/schemas";
 
-// V1: Use File Repository
-const repository = new FileSessionRepository();
+const repository = new SupabaseSessionRepository();
 
 export async function POST(request: Request) {
     try {
