@@ -47,7 +47,6 @@ export default function ActiveQuestionScreen({
     const [isSaving, setIsSaving] = useState(false);
     const [showDebug, setShowDebug] = useState(false);
     const [mode, setMode] = useState<'voice' | 'text'>('voice');
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // --- Audio Hooks ---
     const {
@@ -400,7 +399,7 @@ export default function ActiveQuestionScreen({
                                 <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                                     <button
                                         onClick={handleToggleRecording}
-                                        disabled={isRecordingInitializing || isSubmitting}
+                                        disabled={isRecordingInitializing}
                                         className={cn(
                                             "pointer-events-auto group relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300",
                                             isRecording

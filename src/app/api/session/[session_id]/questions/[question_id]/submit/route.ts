@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { submitAnswer, getAnalysisContext } from "@/lib/server/session/orchestrator";
+import { submitAnswer } from "@/lib/server/session/orchestrator";
 import { SupabaseSessionRepository } from "@/lib/server/infrastructure/supabase-session-repository";
-import { AIService } from "@/lib/server/services/ai-service";
 import { z } from "zod";
+import { requireCandidateToken } from "@/lib/server/auth/candidate-token";
 
 const repository = new SupabaseSessionRepository();
 
@@ -11,6 +11,11 @@ export async function POST(
     { params }: { params: { session_id: string; question_id: string } }
 ) {
     try {
+        const auth = await requireCandidateToken(request, params.session_id);
+        if (!auth.ok) {
+            return NextResponse.json({ error: auth.error }, { status: auth.status });
+        }
+
         const body = await request.json();
         const { text, analysis } = z.object({
             text: z.string(),
@@ -27,24 +32,17 @@ export async function POST(
             return NextResponse.json({ error: "Session not found" }, { status: 404 });
         }
 
+        const existingAnswer = session.answers[params.question_id];
+        if (existingAnswer?.submittedAt) {
+            return NextResponse.json(session);
+        }
+
         // 2. Submit Answer (Updates Session State)
         console.log(`[SubmitAPI] Submitting answer for Q: ${params.question_id}`);
 
         // ... Logic ...
 
-        let finalAnalysis = analysis;
-        if (!finalAnalysis) {
-            console.log(`[SubmitAPI] Triggering AI Analysis...`);
-            const context = getAnalysisContext(session, params.question_id);
-            if (context) {
-                finalAnalysis = await AIService.analyzeAnswer(context.question, answer, null);
-                console.log(`[SubmitAPI] AI Analysis Complete:`, finalAnalysis?.confidence);
-            } else {
-                console.warn(`[SubmitAPI] Context not found for analysis`);
-            }
-        }
-
-        const updatedSession = submitAnswer(session, params.question_id, answer, finalAnalysis || {});
+        const updatedSession = submitAnswer(session, params.question_id, answer, analysis || undefined);
         console.log(`[SubmitAPI] Session Updated (Memory), Status: ${updatedSession.status}`);
 
         // 3. Persist

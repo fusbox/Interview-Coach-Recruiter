@@ -1,12 +1,28 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { InterviewSession } from "@/lib/domain/types";
 import { selectNow } from "@/lib/state/selectors";
 
 const STORAGE_KEY = "current_session_id";
+const TOKEN_HEADER = "x-candidate-token";
 
-export function useDomainSession(initialSessionId?: string) {
+export function useDomainSession(initialSessionId?: string, candidateToken?: string) {
     const [session, setSession] = useState<InterviewSession | undefined>(undefined);
     const now = useMemo(() => selectNow(session), [session]);
+    const isSubmittingRef = useRef(false);
+
+    const buildHeaders = useCallback(
+        (includeJson = true) => {
+            const headers: Record<string, string> = {};
+            if (includeJson) {
+                headers["Content-Type"] = "application/json";
+            }
+            if (candidateToken) {
+                headers[TOKEN_HEADER] = candidateToken;
+            }
+            return headers;
+        },
+        [candidateToken]
+    );
 
     // 1. Rehydrate on Mount
     useEffect(() => {
@@ -19,7 +35,9 @@ export function useDomainSession(initialSessionId?: string) {
                 localStorage.setItem(STORAGE_KEY, initialSessionId);
             }
 
-            fetch(`/api/session/${targetId}`)
+            fetch(`/api/session/${targetId}`, {
+                headers: buildHeaders(false)
+            })
                 .then(res => {
                     if (res.ok) return res.json();
                     throw new Error("Session not found");
@@ -33,14 +51,14 @@ export function useDomainSession(initialSessionId?: string) {
                     }
                 });
         }
-    }, [initialSessionId]); // Depend on initialSessionId
+    }, [initialSessionId, buildHeaders, session]); // Depend on initialSessionId
 
     // Actions
     const init = useCallback(async (role: string) => {
         try {
             const response = await fetch('/api/session/start', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: buildHeaders(),
                 body: JSON.stringify({ role })
             });
 
@@ -52,13 +70,15 @@ export function useDomainSession(initialSessionId?: string) {
         } catch (e) {
             console.error("Session Init Failed", e);
         }
-    }, []);
+    }, [buildHeaders]);
 
     const refresh = useCallback(async () => {
         if (!session?.id) return;
-        const res = await fetch(`/api/session/${session.id}`);
+        const res = await fetch(`/api/session/${session.id}`, {
+            headers: buildHeaders(false)
+        });
         if (res.ok) setSession(await res.json());
-    }, [session?.id]);
+    }, [session?.id, buildHeaders]);
 
     const start = useCallback(async () => {
         if (!session) return;
@@ -67,21 +87,23 @@ export function useDomainSession(initialSessionId?: string) {
 
         await fetch(`/api/session/${session.id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildHeaders(),
             body: JSON.stringify({ status: "IN_SESSION" })
         });
-    }, [session]);
+    }, [session, buildHeaders]);
 
     const submit = useCallback(async (answerText: string) => {
         if (!session || !now.currentQuestionId) return;
+        if (isSubmittingRef.current) return;
+        isSubmittingRef.current = true;
 
-        // Optimistic Update: Immediately transition to REVIEWING to show loader
+        // Optimistic Update: Immediately transition to AWAITING_EVALUATION to show loader
         setSession(prev => {
             if (!prev) return undefined;
             const qid = now.currentQuestionId!;
             return {
                 ...prev,
-                status: "REVIEWING",
+                status: "AWAITING_EVALUATION",
                 answers: {
                     ...prev.answers,
                     [qid]: {
@@ -89,7 +111,8 @@ export function useDomainSession(initialSessionId?: string) {
                         questionId: qid,
                         transcript: answerText,
                         submittedAt: Date.now(),
-                        analysis: null
+                        analysis: null,
+                        draft: undefined
                     }
                 }
             };
@@ -98,19 +121,39 @@ export function useDomainSession(initialSessionId?: string) {
         // But for V1, let's wait for the response to ensure persistence.
         const res = await fetch(`/api/session/${session.id}/questions/${now.currentQuestionId}/submit`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildHeaders(),
             body: JSON.stringify({ text: answerText })
+        });
+
+        try {
+            if (res.ok) {
+                const updated = await res.json();
+                console.log("Submit success, updated session:", updated.status);
+                setSession(updated);
+            } else {
+                console.error("Submit failed:", res.status, res.statusText);
+                // Ideally rollback status here, but for V1 we leave it or rely on user refresh
+            }
+        } finally {
+            isSubmittingRef.current = false;
+        }
+    }, [session, now.currentQuestionId, buildHeaders]);
+
+    const analyzeCurrentQuestion = useCallback(async () => {
+        if (!session || !now.currentQuestionId) return;
+
+        const res = await fetch(`/api/session/${session.id}/questions/${now.currentQuestionId}/analysis`, {
+            method: 'POST',
+            headers: buildHeaders(false)
         });
 
         if (res.ok) {
             const updated = await res.json();
-            console.log("Submit success, updated session:", updated.status);
             setSession(updated);
         } else {
-            console.error("Submit failed:", res.status, res.statusText);
-            // Ideally rollback status here, but for V1 we leave it or rely on user refresh
+            console.error("Analysis trigger failed:", res.status, res.statusText);
         }
-    }, [session, now.currentQuestionId]);
+    }, [session, now.currentQuestionId, buildHeaders]);
 
     const submitInitials = useCallback(async (initials: string) => {
         if (!session) return;
@@ -124,10 +167,10 @@ export function useDomainSession(initialSessionId?: string) {
 
         await fetch(`/api/session/${session.id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildHeaders(),
             body: JSON.stringify({ enteredInitials: initials, initialsRequired: false })
         });
-    }, [session]);
+    }, [session, buildHeaders]);
 
     const saveDraft = useCallback(async (text: string) => {
         if (!session || !now.currentQuestionId) return;
@@ -146,8 +189,7 @@ export function useDomainSession(initialSessionId?: string) {
                     [qid]: {
                         ...currentAns,
                         questionId: qid,
-                        transcript: text // Treat draft as transcript for now or separate field? 
-                        // Domain 'Answer' has 'transcript'. If not submitted, it's effectively a draft.
+                        draft: text
                     }
                 }
             };
@@ -169,10 +211,10 @@ export function useDomainSession(initialSessionId?: string) {
 
         await fetch(url, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildHeaders(),
             body: JSON.stringify({ text, isFinal: false })
         }).catch(e => console.error("[useDomainSession] saveDraft Error:", e));
-    }, [session, now.currentQuestionId]);
+    }, [session, now.currentQuestionId, buildHeaders]);
 
     const next = useCallback(async () => {
         if (!session) return;
@@ -189,13 +231,13 @@ export function useDomainSession(initialSessionId?: string) {
 
         await fetch(`/api/session/${session.id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildHeaders(),
             body: JSON.stringify({
                 currentQuestionIndex: nextIdx,
                 status: nextStatus
             })
         });
-    }, [session]);
+    }, [session, buildHeaders]);
 
     const retry = useCallback(async () => {
         if (!session || !now.currentQuestionId) return;
@@ -224,9 +266,10 @@ export function useDomainSession(initialSessionId?: string) {
 
         // Server Persist: We need to clear these fields.
         await fetch(`/api/session/${session.id}/questions/${qid}/retry`, {
-            method: 'POST'
+            method: 'POST',
+            headers: buildHeaders(false)
         });
-    }, [session, now.currentQuestionId]);
+    }, [session, now.currentQuestionId, buildHeaders]);
 
     const goToQuestion = useCallback(async (index: number) => {
         if (!session) return;
@@ -267,10 +310,10 @@ export function useDomainSession(initialSessionId?: string) {
 
         await fetch(`/api/session/${session.id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildHeaders(),
             body: JSON.stringify({ currentQuestionIndex: index })
         });
-    }, [session]);
+    }, [session, buildHeaders]);
 
     const updateSession = useCallback(async (updates: Partial<InterviewSession>) => {
         if (!session) return;
@@ -280,10 +323,10 @@ export function useDomainSession(initialSessionId?: string) {
 
         await fetch(`/api/session/${session.id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: buildHeaders(),
             body: JSON.stringify(updates)
         });
-    }, [session?.id]);
+    }, [session?.id, buildHeaders]);
 
     const reset = useCallback(async () => {
         if (!session) return;
@@ -297,9 +340,10 @@ export function useDomainSession(initialSessionId?: string) {
         } : undefined);
 
         await fetch(`/api/session/${session.id}/reset`, {
-            method: 'POST'
+            method: 'POST',
+            headers: buildHeaders(false)
         });
-    }, [session?.id]);
+    }, [session?.id, buildHeaders]);
 
     return {
         session,
@@ -316,6 +360,7 @@ export function useDomainSession(initialSessionId?: string) {
             refresh,
             goToQuestion,
             refresh,
+            analyzeCurrentQuestion,
             updateSession,
             reset
         }

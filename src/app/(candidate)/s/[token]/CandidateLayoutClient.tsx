@@ -31,6 +31,7 @@ function CandidateLayoutContent({ children }: { children: React.ReactNode }) {
 interface CandidateLayoutClientProps {
     children: React.ReactNode;
     sessionId?: string;
+    candidateToken?: string;
     initialConfig?: {
         role: string;
         jobDescription?: string;
@@ -42,9 +43,9 @@ interface CandidateLayoutClientProps {
     };
 }
 
-export function CandidateLayoutClient({ children, sessionId, initialConfig }: CandidateLayoutClientProps) {
+export function CandidateLayoutClient({ children, sessionId, candidateToken, initialConfig }: CandidateLayoutClientProps) {
     return (
-        <SessionProvider sessionId={sessionId} initialConfig={initialConfig}>
+        <SessionProvider sessionId={sessionId} candidateToken={candidateToken} initialConfig={initialConfig}>
             <CandidateLayoutContent>
                 {children}
             </CandidateLayoutContent>

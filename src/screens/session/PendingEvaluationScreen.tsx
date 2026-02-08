@@ -1,6 +1,32 @@
+import { useEffect, useRef } from "react"
 import { Loader2, Sparkles } from "lucide-react"
+import { useSession } from "@/context/SessionContext"
 
 export default function PendingEvaluationScreen() {
+    const { session, analyzeCurrentQuestion } = useSession();
+    const hasTriggered = useRef(false);
+    const lastQuestionId = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (!session) return;
+        const currentQuestionId = session.questions[session.currentQuestionIndex]?.id;
+        if (currentQuestionId && currentQuestionId !== lastQuestionId.current) {
+            lastQuestionId.current = currentQuestionId;
+            hasTriggered.current = false;
+        }
+
+        if (!hasTriggered.current) {
+            hasTriggered.current = true;
+            analyzeCurrentQuestion();
+        }
+
+        const interval = setInterval(() => {
+            analyzeCurrentQuestion();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [session, analyzeCurrentQuestion]);
+
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4 font-sans">
             <div className="text-center space-y-6 animate-in fade-in zoom-in duration-500">
