@@ -75,7 +75,26 @@ export function useDomainSession(initialSessionId?: string) {
     const submit = useCallback(async (answerText: string) => {
         if (!session || !now.currentQuestionId) return;
 
-        // Optimistic Update? No, wait for server processing/ack usually.
+        // Optimistic Update: Immediately transition to REVIEWING to show loader
+        setSession(prev => {
+            if (!prev) return undefined;
+            const qid = now.currentQuestionId!;
+            return {
+                ...prev,
+                status: "REVIEWING",
+                answers: {
+                    ...prev.answers,
+                    [qid]: {
+                        ...prev.answers[qid],
+                        questionId: qid,
+                        transcript: answerText,
+                        submittedAt: Date.now(),
+                        analysis: null
+                    }
+                }
+            };
+        });
+
         // But for V1, let's wait for the response to ensure persistence.
         const res = await fetch(`/api/session/${session.id}/questions/${now.currentQuestionId}/submit`, {
             method: 'POST',
@@ -89,6 +108,7 @@ export function useDomainSession(initialSessionId?: string) {
             setSession(updated);
         } else {
             console.error("Submit failed:", res.status, res.statusText);
+            // Ideally rollback status here, but for V1 we leave it or rely on user refresh
         }
     }, [session, now.currentQuestionId]);
 
@@ -144,11 +164,14 @@ export function useDomainSession(initialSessionId?: string) {
 
         // Let's use a new lighter endpoint: PUT /questions/[id]/answer
         // Or reuse existing submit but with "isFinal=false"?
-        await fetch(`/api/session/${session.id}/questions/${now.currentQuestionId}/answer`, {
+        const url = `/api/session/${session.id}/questions/${now.currentQuestionId}/answer`;
+        console.log(`[useDomainSession] saveDraft -> PUT ${url}`);
+
+        await fetch(url, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text, isFinal: false })
-        });
+        }).catch(e => console.error("[useDomainSession] saveDraft Error:", e));
     }, [session, now.currentQuestionId]);
 
     const next = useCallback(async () => {
@@ -205,6 +228,50 @@ export function useDomainSession(initialSessionId?: string) {
         });
     }, [session, now.currentQuestionId]);
 
+    const goToQuestion = useCallback(async (index: number) => {
+        if (!session) return;
+
+        // Validation: Can only go to questions up to the first unanswered one (furthest progress)
+        // Find the index of the first question that has NO submittedAt
+        // Actually, we iterate.
+        let maxAllowed = 0;
+        for (let i = 0; i < session.questions.length; i++) {
+            const q = session.questions[i];
+            const ans = session.answers[q.id];
+            if (ans?.submittedAt) {
+                maxAllowed = i + 1;
+            } else {
+                // This is the first unanswered one.
+                maxAllowed = i;
+                break;
+            }
+        }
+
+        // Edge case: If all are answered, maxAllowed is length - 1 (or length? depending on if we have a summary screen?)
+        // If we want to allow going to any question if all are answered:
+        if (session.answers[session.questions[session.questions.length - 1].id]?.submittedAt) {
+            maxAllowed = session.questions.length - 1;
+        }
+
+        if (index < 0 || index > maxAllowed) {
+            console.warn(`[useDomainSession] goToQuestion blocked: ${index} > ${maxAllowed}`);
+            return;
+        }
+
+        // Optimistic
+        setSession(prev => prev ? {
+            ...prev,
+            currentQuestionIndex: index,
+            status: "IN_SESSION"
+        } : undefined);
+
+        await fetch(`/api/session/${session.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentQuestionIndex: index })
+        });
+    }, [session]);
+
     const updateSession = useCallback(async (updates: Partial<InterviewSession>) => {
         if (!session) return;
 
@@ -215,6 +282,22 @@ export function useDomainSession(initialSessionId?: string) {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates)
+        });
+    }, [session?.id]);
+
+    const reset = useCallback(async () => {
+        if (!session) return;
+
+        // Optimistic: Clear answers, reset index, status IN_SESSION
+        setSession(prev => prev ? {
+            ...prev,
+            status: "IN_SESSION",
+            currentQuestionIndex: 0,
+            answers: {} // Clear all answers
+        } : undefined);
+
+        await fetch(`/api/session/${session.id}/reset`, {
+            method: 'POST'
         });
     }, [session?.id]);
 
@@ -229,8 +312,12 @@ export function useDomainSession(initialSessionId?: string) {
             saveDraft,
             next,
             retry,
+            goToQuestion,
             refresh,
-            updateSession
+            goToQuestion,
+            refresh,
+            updateSession,
+            reset
         }
     };
 }

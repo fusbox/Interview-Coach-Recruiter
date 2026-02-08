@@ -37,7 +37,7 @@ export async function POST(
             console.log(`[SubmitAPI] Triggering AI Analysis...`);
             const context = getAnalysisContext(session, params.question_id);
             if (context) {
-                finalAnalysis = await AIService.analyzeAnswer(context.question, answer);
+                finalAnalysis = await AIService.analyzeAnswer(context.question, answer, null);
                 console.log(`[SubmitAPI] AI Analysis Complete:`, finalAnalysis?.confidence);
             } else {
                 console.warn(`[SubmitAPI] Context not found for analysis`);

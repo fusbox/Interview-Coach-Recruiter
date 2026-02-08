@@ -215,6 +215,56 @@ export class SupabaseSessionRepository implements SessionRepository {
         }
     }
 
+    async updateMetadata(id: string, updates: Partial<InterviewSession>): Promise<void> {
+        const supabase = createAdminClient();
+        // console.log(`[SupabaseSessionRepo] updateMetadata ${id}`, Object.keys(updates));
+
+        const dbUpdates: any = {};
+
+        // Map top-level fields
+        if (updates.status) {
+            let dbStatus = updates.status;
+            if (updates.status === "AWAITING_EVALUATION" || updates.status === "REVIEWING") {
+                dbStatus = "IN_SESSION";
+            }
+            dbUpdates.status = dbStatus;
+        }
+        if (updates.currentQuestionIndex !== undefined) dbUpdates.current_question_index = updates.currentQuestionIndex;
+        if (updates.role) dbUpdates.target_role = updates.role;
+        if (updates.jobDescription) dbUpdates.job_description = updates.jobDescription;
+
+        // Handle JSON fields (intake_json)
+        if (updates.engagedTimeSeconds !== undefined || updates.enteredInitials !== undefined) {
+            const { data: current, error: fetchError } = await supabase
+                .from('sessions')
+                .select('intake_json')
+                .eq('session_id', id)
+                .single();
+
+            if (!fetchError && current) {
+                const currentIntake = current.intake_json || {};
+                dbUpdates.intake_json = {
+                    ...currentIntake,
+                    ...(updates.enteredInitials !== undefined && { entered_initials: updates.enteredInitials }),
+                    ...(updates.engagedTimeSeconds !== undefined && { engaged_time_seconds: updates.engagedTimeSeconds })
+                };
+            }
+        }
+
+        if (Object.keys(dbUpdates).length === 0) return;
+
+        const { error } = await supabase
+            .from('sessions')
+            .update(dbUpdates)
+            .eq('session_id', id);
+
+        if (error) {
+            console.error("[Repo] Metadata Update Failed:", error);
+            throw new Error(error.message);
+        }
+    }
+
+
     async delete(id: string): Promise<void> {
         const supabase = createClient();
         await supabase.from('sessions').delete().eq('session_id', id);

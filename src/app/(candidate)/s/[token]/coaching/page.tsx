@@ -44,7 +44,7 @@ export default function CoachingPage({ params }: { params: { token: string } }) 
             <Card className="border-l-4 border-l-primary bg-slate-50/50">
                 <CardHeader>
                     <CardDescription className="uppercase tracking-widest text-xs font-semibold">Current Baseline</CardDescription>
-                    <CardTitle className="text-xl md:text-2xl font-serif font-medium leading-relaxed">
+                    <CardTitle className="text-xl md:text-2xl font-sans font-medium leading-relaxed">
                         {signals.baseline.text}
                     </CardTitle>
                 </CardHeader>

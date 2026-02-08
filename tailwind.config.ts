@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss"
+import { fontFamily } from "tailwindcss/defaultTheme"
 
 const config = {
     darkMode: ["class"],
@@ -18,6 +19,9 @@ const config = {
             },
         },
         extend: {
+            fontFamily: {
+                sans: ["var(--font-sans)", ...fontFamily.sans],
+            },
             colors: {
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
@@ -60,6 +64,34 @@ const config = {
                 warning: {
                     DEFAULT: "hsl(var(--warning))",
                     foreground: "hsl(var(--warning-foreground))",
+                },
+                // Override default blue to match brand primary (#0c61e7)
+                blue: {
+                    50: "#f0f7ff",
+                    100: "#e0f0ff",
+                    200: "#bae0ff",
+                    300: "#7cc2ff",
+                    400: "#3d9eff",
+                    500: "#1a7cff",
+                    600: "#0c61e7", // Primary Brand
+                    700: "#084bbd",
+                    800: "#093b94",
+                    900: "#0c3275",
+                    950: "#081f4d",
+                },
+                // Standardize Green to Emerald/Teal (Hue 160) to match Calm Authority theme
+                green: {
+                    50: "#f0fdf7",
+                    100: "#e0fbf0",
+                    200: "#b8f3dc",
+                    300: "#8feac6",
+                    400: "#66e0af",
+                    500: "#3dd699",
+                    600: "#259368", // Matches --success (160 60% 36%)
+                    700: "#1d7251",
+                    800: "#14523a",
+                    900: "#0c3123",
+                    950: "#05160f",
                 },
             },
             borderRadius: {

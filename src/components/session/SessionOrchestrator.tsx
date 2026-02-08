@@ -9,9 +9,11 @@ import ReviewFeedbackScreen from "@/screens/session/ReviewFeedbackScreen";
 import SummaryScreen from "@/screens/session/SummaryScreen";
 import ErrorScreen from "@/screens/session/ErrorScreen";
 import LoadingScreen from "@/screens/session/LoadingScreen";
+import IntakeScreen from "@/screens/session/IntakeScreen";
+import SessionSavedScreen from "@/screens/session/SessionSavedScreen";
 
 export default function SessionOrchestrator() {
-    const { now, session, startSession, nextQuestion, retryQuestion, saveAnswer, saveDraft, isLoading } = useSession();
+    const { now, session, startSession, nextQuestion, retryQuestion, goToQuestion, saveAnswer, saveDraft, isLoading, updateSession } = useSession();
 
     // Computed Context for Screens
     // TODO: Improve cleaner selector access either in Context or Hook
@@ -27,6 +29,7 @@ export default function SessionOrchestrator() {
     // Render Logic
     if (isLoading && !session) return <LoadingScreen />; // Initial load
     if (now.status === "ERROR") return <ErrorScreen />;
+    if (now.status === "PAUSED") return <SessionSavedScreen />;
     if (now.requiresInitials) return <InitialsScreen />;
 
     if (now.status === "NOT_STARTED") {
@@ -34,6 +37,11 @@ export default function SessionOrchestrator() {
     }
 
     if (now.status === "IN_SESSION") {
+        // New Intake Step
+        if (!session?.coachingPreference) {
+            return <IntakeScreen onComplete={(pref: 'tier0' | 'tier1' | 'tier2') => updateSession(session!.id, { coachingPreference: pref })} />;
+        }
+
         if (!currentQ) return <ErrorScreen />;
         return (
             <ActiveQuestionScreen
@@ -43,6 +51,9 @@ export default function SessionOrchestrator() {
                 initialAnswer={currentAns?.transcript || ""}
                 onSaveDraft={saveDraft}
                 onSubmit={handleSubmit}
+                retryQuestion={retryQuestion}
+                goToQuestion={goToQuestion}
+                nextQuestion={nextQuestion}
             />
         );
     }
@@ -52,12 +63,7 @@ export default function SessionOrchestrator() {
     if (now.status === "REVIEWING") {
         if (!currentQ) return <ErrorScreen />;
         return (
-            <ReviewFeedbackScreen
-                question={currentQ}
-                analysis={currentAns?.analysis}
-                onNext={nextQuestion}
-                onRetry={retryQuestion}
-            />
+            <ReviewFeedbackScreen />
         );
     }
 

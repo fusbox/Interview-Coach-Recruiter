@@ -17,8 +17,18 @@ export async function POST(request: Request) {
 
         const { question, input, blueprint, intakeData } = parseResult.data;
 
-        if (typeof input !== "string") {
-            return NextResponse.json({ error: "Audio not supported yet" }, { status: 501 });
+        let answerText: string | null = null;
+        let audioData: { base64: string; mimeType: string } | null = null;
+
+        if (typeof input === "string") {
+            answerText = input;
+        } else if (input && typeof input === "object" && "data" in input && "mimeType" in input) {
+            audioData = {
+                base64: (input as any).data,
+                mimeType: (input as any).mimeType
+            };
+        } else {
+            return NextResponse.json({ error: "Invalid input format" }, { status: 400 });
         }
 
         // Delegate to Service
@@ -32,7 +42,8 @@ export async function POST(request: Request) {
 
         const analysis = await AIService.analyzeAnswer(
             questionObj as any,
-            input as string,
+            answerText,
+            audioData,
             blueprint as any,
             intakeData
         );

@@ -5,6 +5,14 @@ const WINDOW_EXTENSION_MS = 30000; // 30 seconds
 const AUTO_SAVE_INTERVAL_MS = 10000; // 10 seconds
 const MAX_DEBUG_EVENTS = 50;
 
+const generateId = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    // Fallback for insecure contexts (mobile dev)
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
 export type EngagementTier = 'tier1' | 'tier2' | 'tier3';
 
 export interface TrackerEvent {
@@ -54,7 +62,7 @@ export const useEngagementTracker = ({
     const logEvent = useCallback(
         (type: TrackerEvent['type'], tier?: EngagementTier, details?: string) => {
             const event: TrackerEvent = {
-                id: crypto.randomUUID(),
+                id: generateId(),
                 timestamp: Date.now(),
                 type,
                 tier,
@@ -67,8 +75,9 @@ export const useEngagementTracker = ({
 
     // Helper: Open or Extend the Window
     const updateWindow = useCallback(
-        (tier: EngagementTier, eventType?: string) => {
+        (tier: EngagementTier, eventType?: string, durationSeconds?: number) => {
             const now = Date.now();
+            const extensionTime = (durationSeconds || 30) * 1000;
 
             // Tier 1: Presence (Gatekeeper) - handled in the interval check,
             // but we also check it here to prevent opening windows when hidden.
@@ -85,12 +94,12 @@ export const useEngagementTracker = ({
             if (tier === 'tier3') {
                 // Tier 3: Task Event - ALWAYS opens/resets the window
                 setIsWindowOpen(true);
-                windowExpiryRef.current = now + WINDOW_EXTENSION_MS;
+                windowExpiryRef.current = now + extensionTime;
                 logEvent('WINDOW_OPEN', 'tier3', `Task Event detected${typeLabel}`);
             } else if (tier === 'tier2') {
                 // Tier 2: Interaction - ONLY extends if window is already open
                 if (isWindowOpen && now < windowExpiryRef.current) {
-                    windowExpiryRef.current = now + WINDOW_EXTENSION_MS;
+                    windowExpiryRef.current = now + extensionTime;
                     logEvent('WINDOW_EXTEND', 'tier2', `Interaction extended window${typeLabel}`);
                 } else {
                     logEvent('TRACK_EVENT', 'tier2', `Ignored: Window not open${typeLabel}`);
@@ -102,9 +111,9 @@ export const useEngagementTracker = ({
 
     // Expose methods for components to report events
     const trackEvent = useCallback(
-        (tier: 'tier2' | 'tier3', eventType?: string) => {
+        (tier: EngagementTier, eventType?: string, durationSeconds?: number) => {
             if (!isEnabled) return;
-            updateWindow(tier, eventType);
+            updateWindow(tier, eventType, durationSeconds);
         },
         [isEnabled, updateWindow]
     );

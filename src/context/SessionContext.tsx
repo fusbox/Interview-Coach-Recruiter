@@ -4,6 +4,7 @@ import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { InterviewSession, AnalysisResult } from '@/lib/domain/types';
 import { NowState, ScreenId } from '@/lib/state/now.types';
 import { useDomainSession } from '@/hooks/useDomainSession';
+import { useEngagementTracker, TrackerEvent, EngagementTier } from '@/hooks/useEngagementTracker';
 
 // --- Types (Stubs or Imports) ---
 export interface OnboardingIntakeV1 {
@@ -42,6 +43,13 @@ export interface SessionContextType {
     // Headless Core State (The New Truth)
     now: NowState;
     screen: ScreenId;
+
+    // Engagement State (Hoisted)
+    trackEvent: (tier: EngagementTier, eventType?: string, durationSeconds?: number) => void;
+    engagementDebugEvents: TrackerEvent[];
+    isEngagementWindowOpen: boolean;
+    engagementWindowTimeRemaining: number;
+    clearDebugEvents: () => void;
 }
 
 export const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -104,21 +112,39 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children, sess
         if (ans.text) actions.submit(ans.text);
     };
 
-    // Stubs
-    const goToQuestion = (index: number) => console.log("goToQuestion not impl in V1");
+    const goToQuestion = (index: number) => {
+        actions.goToQuestion(index);
+    };
+
     const loadTipsForQuestion = async () => console.log("loadTips not impl in V1");
     const clearAnswer = () => console.log("clearAnswer not impl");
     const updateAnswerAnalysis = () => console.log("updateAnswerAnalysis not impl");
     const finishSession = async () => console.log("finishSession handled by Orchestrator");
-    const resetSession = () => console.log("resetSession not impl");
     const cacheAudioUrl = () => { };
     const updateSession = async (sessionId: string, updates: Partial<InterviewSession>) => {
         // We ignore sessionId param here as hook is bound to current session, 
         // but for safety/interface compatibility we keep it.
-        // If IDs differ, we might warn, but typically we only update current.
         if (sessionId !== session?.id) console.warn("Context updateSession ID mismatch - updating current anyway");
         await actions.updateSession(updates);
     };
+
+    const tracker = useEngagementTracker({
+        isEnabled: session?.status !== 'COMPLETED',
+        onUpdate: (seconds) => {
+            if (session?.id) {
+                // Update the session's engagedTimeSeconds in DB
+                // We add the delta (seconds) to the current session value?
+                // Wait, actions.updateSession replaces? No, usually merges. 
+                // But we need to atomic increment? 
+                // Currently `useEngagementTracker` returns a delta `accumulatedSeconds`.
+                // So we need to fetch current, add delta, and save?
+                // Or does backend handle increment? Backend is usually simple update.
+                // Optimistic update:
+                const currentTotal = session.engagedTimeSeconds || 0;
+                actions.updateSession({ engagedTimeSeconds: currentTotal + seconds });
+            }
+        },
+    });
 
     const contextValue: SessionContextType = {
         session,
@@ -136,10 +162,16 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children, sess
         clearAnswer,
         updateAnswerAnalysis,
         finishSession,
-        resetSession,
+        resetSession: actions.reset,
         audioUrls: {}, // No audio in V1
         cacheAudioUrl,
-        updateSession
+        updateSession,
+        // Engagement
+        trackEvent: tracker.trackEvent,
+        engagementDebugEvents: tracker.debugEvents,
+        isEngagementWindowOpen: tracker.isWindowOpen,
+        engagementWindowTimeRemaining: tracker.windowTimeRemaining,
+        clearDebugEvents: tracker.clearDebugEvents
     };
 
     return (

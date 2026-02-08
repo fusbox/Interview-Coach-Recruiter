@@ -37,7 +37,7 @@
        Brandless semantic actions
        ========================= */
 
-        --primary: 210 90% 45%;
+        --primary: 217 90% 48%;
         /* calm authority blue */
         --primary-foreground: 0 0% 100%;
         /* white text */
@@ -57,7 +57,7 @@
         --destructive-foreground: 0 0% 100%;
         /* white text */
 
-        --ring: 210 90% 45%;
+        --ring: 217 90% 48%;
         /* focus ring */
 
         /* Extension tokens */
@@ -91,7 +91,7 @@
         --border: 222 30% 18%;
         --input: 222 30% 18%;
 
-        --primary: 210 90% 55%;
+        --primary: 217 90% 55%;
         --primary-foreground: 222 47% 7%;
 
         --secondary: 222 30% 14%;
@@ -103,7 +103,7 @@
         --destructive: 0 84% 60%;
         --destructive-foreground: 0 0% 100%;
 
-        --ring: 210 90% 55%;
+        --ring: 217 90% 55%;
 
         --success: 160 60% 40%;
         --success-foreground: 222 47% 7%;

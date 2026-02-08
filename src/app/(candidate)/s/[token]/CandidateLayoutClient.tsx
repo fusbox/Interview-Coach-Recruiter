@@ -1,8 +1,7 @@
 "use client";
 
-import { RecruiterSidebar } from '@/components/layout/RecruiterSidebar'; // Typo in plan? Should be CandidateSidebar
+import { RecruiterSidebar } from '@/components/layout/RecruiterSidebar';
 import { CandidateSidebar } from '@/components/layout/CandidateSidebar';
-import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { SessionProvider, useSession } from '@/context/SessionContext';
 import { InterviewSession } from '@/lib/domain/types';
 
@@ -21,13 +20,8 @@ function CandidateLayoutContent({ children }: { children: React.ReactNode }) {
             {/* Desktop Sidebar */}
             <CandidateSidebar className="hidden md:flex w-64 shrink-0 sticky top-0 h-screen" />
 
-            {/* Mobile Sidebar */}
-            <MobileSidebar>
-                <CandidateSidebar />
-            </MobileSidebar>
-
             {/* Main Content */}
-            <main className="flex-1 p-4 pt-16 md:p-8 md:pt-8 overflow-x-hidden">
+            <main className="flex-1 p-4 pt-4 md:p-8 md:pt-8 overflow-x-hidden">
                 {children}
             </main>
         </div>

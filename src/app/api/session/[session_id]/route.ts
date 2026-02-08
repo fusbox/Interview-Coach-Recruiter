@@ -24,13 +24,18 @@ export async function PATCH(
         const session = await repository.get(session_id);
         if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
-        // Basic Merge (In real apps, use Domain Functions!)
-        // But for V1 "Index/Status" updates, this is acceptable Controller logic
-        // Ideally: if (body.status === 'IN_SESSION') session = startSession(session);
+        // Optimization: If only metadata fields are present, use updateMetadata
+        // We define metadata fields as anything NOT 'questions' or 'answers'.
+        const isMetadataUpdate = !body.questions && !body.answers;
 
         const updatedSession = { ...session, ...body };
 
-        await repository.update(updatedSession);
+        if (isMetadataUpdate) {
+            await repository.updateMetadata(session_id, body);
+        } else {
+            await repository.update(updatedSession);
+        }
+
         return NextResponse.json(updatedSession);
 
     } catch (error) {

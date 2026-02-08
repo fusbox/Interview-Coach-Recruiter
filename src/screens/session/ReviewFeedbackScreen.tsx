@@ -1,147 +1,176 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Question, AnalysisResult } from "@/lib/domain/types"
-import { ArrowRight, CheckCircle2, Lightbulb, RotateCcw, Save } from "lucide-react"
+import { useSession } from "@/context/SessionContext"
+import { ChevronDown, ChevronRight, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react"
+import { cn } from "@/lib/cn"
+// Ensure you import the CSS in layout or here (Global CSS preferred usually, but simple import works if configured)
+import "@/styles/loader.css"
 
-interface ReviewFeedbackScreenProps {
-    question: Question;
-    analysis?: AnalysisResult;
-    onNext: () => void;
-    onRetry: () => void;
-}
+export default function ReviewFeedbackScreen() {
+    const { session, nextQuestion, retryQuestion, updateSession } = useSession(); // Corrected destructuring
+    const currentQ = session?.questions[session.currentQuestionIndex];
+    // Safe access:
+    const answer = currentQ ? session?.answers[currentQ.id] : undefined;
+    const analysis = answer?.analysis;
 
-export default function ReviewFeedbackScreen({ question, analysis, onNext, onRetry }: ReviewFeedbackScreenProps) {
-    const [saved, setSaved] = useState(false);
+    const [whyOpen, setWhyOpen] = useState(false);
+    const [obsOpen, setObsOpen] = useState(false);
 
-    const handleSave = () => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+    // If no analysis yet, we show loader
+    const isThinking = !analysis || !analysis.primaryFocus;
+
+    if (!session || !currentQ || !answer) return <div className="p-8">No session data.</div>;
+
+    // Helper: Label Mapping
+    const getDimensionLabel = (dim: string) => {
+        const map: Record<string, string> = {
+            'specificity_concreteness': 'Specific & Concrete',
+            'outcome_explicitness': 'Outcome Clarity',
+            'structural_clarity': 'Structure',
+            'decision_rationale': 'Decision Logic',
+            'focus_relevance': 'Focus',
+            'delivery_control': 'Delivery'
+        };
+        return map[dim] || dim.replace(/_/g, " ");
     };
 
-    if (!analysis) {
-        return <div className="p-8 text-center text-muted-foreground">Loading feedback...</div>;
-    }
+    const handleStop = async () => {
+        await updateSession(session.id, { status: "PAUSED" });
+    };
 
     return (
-        <div className="min-h-screen bg-background pb-32">
-            {/* Header */}
-            <header className="px-6 py-4 bg-card border-b sticky top-0 z-10">
-                <div className="max-w-3xl mx-auto flex justify-between items-center">
-                    <h1 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                        Feedback Review
-                    </h1>
-                    <div className="flex gap-2">
-                        {/* Mobile Header Actions? Maybe keep it clean */}
-                    </div>
-                </div>
-            </header>
+        <div className="flex flex-col min-h-screen bg-slate-50">
 
-            <main className="max-w-3xl mx-auto p-6 space-y-6">
-
-                {/* Question Context */}
-                <Card>
-                    <CardHeader>
-                        <CardDescription className="uppercase font-bold text-xs tracking-widest">
-                            The Question
-                        </CardDescription>
-                        <CardTitle className="text-xl font-medium tracking-tight">
-                            {question.text}
-                        </CardTitle>
-                    </CardHeader>
-                </Card>
-
-                {/* Coach Reaction & Band */}
-                <Card className="border-primary/20 bg-primary/5">
-                    <CardHeader>
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    Coach's Take
-                                </CardTitle>
-                                <CardDescription className="text-base text-foreground/90 font-medium">
-                                    {analysis.coachReaction}
-                                </CardDescription>
-                            </div>
-
-                            {/* Readiness Badge */}
-                            <div className="flex flex-col items-end gap-1">
-                                {analysis.readinessBand === 'RL4' && <Badge className="bg-primary hover:bg-primary/90">Role Model</Badge>}
-                                {analysis.readinessBand === 'RL3' && <Badge className="bg-success hover:bg-success/90">Ready</Badge>}
-                                {analysis.readinessBand === 'RL2' && <Badge className="bg-warning text-warning-foreground hover:bg-warning/90">Potential</Badge>}
-                                {analysis.readinessBand === 'RL1' && <Badge className="bg-destructive hover:bg-destructive/90">Not Ready</Badge>}
-                                <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Readiness</span>
-                            </div>
-                        </div>
-                    </CardHeader>
-                </Card>
-
-                {/* Feedback Grid */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    {/* Strengths */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold flex items-center gap-2 text-success">
-                                <CheckCircle2 className="w-5 h-5" />
-                                Highlights
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ul className="space-y-3">
-                                {(analysis.strengths || []).map((point, i) => (
-                                    <li key={i} className="text-sm text-muted-foreground leading-relaxed">
-                                        • {point}
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                    </Card>
-
-                    {/* Opportunities */}
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base font-semibold flex items-center gap-2 text-warning">
-                                <Lightbulb className="w-5 h-5" />
-                                Opportunities
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ul className="space-y-3">
-                                {(analysis.opportunities || []).map((point, i) => (
-                                    <li key={i} className="text-sm text-muted-foreground leading-relaxed">
-                                        • {point}
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                    </Card>
-                </div>
-            </main>
-
-            {/* Persistent Footer Actions */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-20 shadow-lg">
-                <div className="max-w-3xl mx-auto flex justify-between items-center">
-
-                    <Button variant="outline" onClick={onRetry} className="gap-2">
-                        <RotateCcw className="w-4 h-4" /> Retry Response
-                    </Button>
-
-                    <div className="flex gap-4 items-center">
-                        <Button
-                            variant="ghost"
-                            onClick={handleSave}
-                            className={`gap-2 ${saved ? "text-green-600" : "text-muted-foreground"}`}
-                        >
-                            <Save className="w-4 h-4" /> {saved ? "Progress Saved" : "Save Progress"}
-                        </Button>
-
-                        <Button onClick={onNext} size="lg" className="px-8 gap-2">
-                            Continue <ArrowRight className="w-4 h-4" />
-                        </Button>
-                    </div>
+            {/* Answer Readonly Panel (Top) */}
+            <div className="bg-white border-b px-6 py-4 shadow-sm">
+                <div className="max-w-3xl mx-auto">
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        Your Answer
+                    </h2>
+                    <p className="text-lg text-slate-800 leading-relaxed font-sans italic opacity-90">
+                        "{answer.transcript}"
+                    </p>
                 </div>
             </div>
+
+            {/* Feedback Region */}
+            <main className="flex-1 max-w-3xl w-full mx-auto p-6 flex flex-col gap-6 animate-in fade-in duration-500">
+
+                {isThinking ? (
+                    <div className="thinking-loader p-8 bg-white rounded-xl shadow-sm mt-4 border border-slate-100">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                        </div>
+                        <div className="skeleton-line" />
+                        <div className="skeleton-line short" />
+                        <div className="skeleton-line" />
+                    </div>
+                ) : (
+                    <>
+                        {/* Ack Text */}
+                        <div className="text-slate-600 font-medium px-1 text-lg">
+                            {analysis.ack}
+                        </div>
+
+                        {/* Primary Focus Block */}
+                        <div className="bg-white border border-l-4 border-l-blue-500 rounded-lg shadow-sm p-6 space-y-3">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-blue-50 text-blue-700 text-[10px] uppercase font-bold px-2 py-0.5 rounded tracking-wide">
+                                    {analysis.primaryFocus?.dimension ? getDimensionLabel(analysis.primaryFocus.dimension) : 'Feedback'}
+                                </span>
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900">
+                                {analysis.primaryFocus?.headline}
+                            </h3>
+                            <p className="text-slate-700 leading-relaxed">
+                                {analysis.primaryFocus?.body}
+                            </p>
+                        </div>
+
+                        {/* Collapsible: Why this helps */}
+                        {analysis.whyThisMatters && (
+                            <div className="border rounded-lg bg-white overflow-hidden">
+                                <button
+                                    onClick={() => setWhyOpen(!whyOpen)}
+                                    // Header Styling: Light Blue (More visible)
+                                    className="w-full flex items-center justify-between p-4 bg-blue-50 hover:bg-blue-100 transition-colors text-left border-b border-transparent hover:border-blue-200"
+                                >
+                                    <span className="font-semibold text-slate-700 flex items-center gap-2">
+                                        <CheckCircle2 className="w-4 h-4 text-slate-400" />
+                                        Why this helps
+                                    </span>
+                                    {whyOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                </button>
+                                {whyOpen && (
+                                    <div className="p-4 pt-4 text-slate-600 bg-white">
+                                        {analysis.whyThisMatters}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Collapsible: What I noticed */}
+                        {analysis.observations && analysis.observations.length > 0 && (
+                            <div className="border rounded-lg bg-white overflow-hidden">
+                                <button
+                                    onClick={() => setObsOpen(!obsOpen)}
+                                    // Header Styling: Blue Match
+                                    className="w-full flex items-center justify-between p-4 bg-blue-50 hover:bg-blue-100 transition-colors text-left border-b border-transparent hover:border-blue-200"
+                                >
+                                    <span className="font-semibold text-slate-700 flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 text-slate-400" />
+                                        What I noticed
+                                    </span>
+                                    {obsOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                </button>
+                                {obsOpen && (
+                                    <ul className="p-4 pt-2 space-y-2 border-t bg-slate-50/50">
+                                        {analysis.observations.map((obs, idx) => (
+                                            <li key={idx} className="flex gap-2 text-slate-600 text-sm">
+                                                <span className="opacity-50">•</span> {obs}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Suggested Action (Text Only) */}
+                        {analysis.nextAction && (
+                            <div className="px-1 pt-2">
+                                <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Suggested Action</p>
+                                <p className="text-slate-700 font-medium">{analysis.nextAction.label}</p>
+                            </div>
+                        )}
+
+                        {/* Actions Buttons */}
+                        <div className="pt-2 flex flex-col gap-3">
+                            <Button
+                                size="lg"
+                                className="w-full text-lg h-12 shadow-md hover:shadow-lg transition-all bg-blue-600 hover:bg-blue-700"
+                                onClick={nextQuestion}
+                            >
+                                Continue to the Next Question <ArrowRight className="ml-2 w-5 h-5" />
+                            </Button>
+
+                            <button
+                                onClick={retryQuestion}
+                                className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors py-2"
+                            >
+                                I'd like to try my answer again
+                            </button>
+
+                            <button
+                                onClick={handleStop}
+                                className="text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors py-2"
+                            >
+                                Stop for now
+                            </button>
+                        </div>
+                    </>
+                )}
+
+            </main>
         </div>
     )
 }

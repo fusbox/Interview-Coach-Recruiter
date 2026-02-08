@@ -4,6 +4,7 @@ export type SessionStatus =
     | 'IN_SESSION'
     | 'AWAITING_EVALUATION'
     | 'REVIEWING'
+    | 'PAUSED'
     | 'COMPLETED'
     | 'ERROR';
 
@@ -58,26 +59,35 @@ export interface Answer {
  * Analysis Result (Model Output)
  */
 export interface AnalysisResult {
+    // New Feedback Schema V2
+    ack?: string;
+    primaryFocus?: {
+        dimension: 'structural_clarity' | 'outcome_explicitness' | 'specificity_concreteness' | 'decision_rationale' | 'focus_relevance' | 'delivery_control';
+        headline: string;
+        body: string;
+    };
+    whyThisMatters?: string;
+    observations?: string[];
+    nextAction?: {
+        label: string;
+        actionType: 'redo_answer' | 'next_question' | 'practice_example' | 'stop_for_now';
+    };
+    meta?: {
+        tier: 0 | 1 | 2;
+        modality: 'text' | 'voice';
+        signalQuality: 'insufficient' | 'emerging' | 'reliable' | 'strong';
+        confidence: 'low' | 'medium' | 'high';
+    };
+
     transcript?: string;
 
-    // Competency Model Signals
-    readinessBand: 'RL1' | 'RL2' | 'RL3' | 'RL4';
-    confidence?: 'Low' | 'Medium' | 'High';
-
-    // Feedback
-    coachReaction: string;
-    strengths: string[];
-    opportunities: string[];
+    // Legacy / Extended Support (Optional - Mapped from V2 where possible or deprecated)
+    readinessBand?: 'RL1' | 'RL2' | 'RL3' | 'RL4'; // Deprecated
+    confidence?: any; // Deprecated (use meta.confidence)
+    coachReaction?: string; // Mapped to ack
+    strengths?: string[]; // Deprecated
+    opportunities?: string[]; // Deprecated
     missingKeyPoints?: string[];
-
-    // Legacy / Extended Support (Optional)
-    strongResponse?: string;
-    feedback?: string[]; // Deprecated but might be referenced in legacy files
-    rating?: string; // Deprecated
-    whyThisWorks?: any;
-    keyTerms?: string[];
-    deliveryTips?: string[];
-    missingElements?: string[];
 
     // Legacy fields to prevent breaking unknown consumers
     answerScore?: number;
@@ -105,6 +115,7 @@ export interface InterviewSession {
     // Minimal config truth
     initialsRequired: boolean;
     enteredInitials?: string;
+    coachingPreference?: 'tier0' | 'tier1' | 'tier2';
 
     // Identity
     candidate?: {

@@ -2,9 +2,11 @@ import { Invite, InviteRepository } from "@/lib/domain/invite";
 import { createClient } from "@/lib/supabase/server";
 import { hashToken } from "@/lib/server/crypto";
 
+import { SupabaseClient } from "@supabase/supabase-js";
+
 export class SupabaseInviteRepository implements InviteRepository {
-    async create(invite: Invite): Promise<void> {
-        const supabase = createClient();
+    async create(invite: Invite, client?: SupabaseClient): Promise<void> {
+        const supabase = client || createClient();
 
         // 1. Create Session
         const { data: sessionData, error: sessionError } = await supabase

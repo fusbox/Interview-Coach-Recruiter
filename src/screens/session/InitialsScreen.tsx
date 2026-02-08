@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Leaf, ShieldCheck, Eye } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/context/SessionContext';
@@ -41,10 +40,9 @@ export default function InitialsScreen() {
                 className="w-full max-w-xl mx-auto px-6 py-12 md:py-24 space-y-12"
             >
                 {/* 1. Logo Area */}
-                <div className="flex justify-start">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Leaf className="text-primary" size={20} />
-                    </div>
+                <div className="flex justify-between items-center">
+                    <img src="/TA-logo.svg" alt="TalentArbor" className="h-24 w-auto object-contain" />
+                    <img src="/rangam-logo.webp" alt="Rangam" className="h-12 w-auto object-contain" />
                 </div>
 
                 {/* 2. Primary Heading */}
@@ -58,13 +56,12 @@ export default function InitialsScreen() {
                 <div className="space-y-6 text-lg text-muted-foreground leading-relaxed text-left">
                     <p>
                         You’ll be asked a series of interview-style questions related to a role you applied for.
-                        Your answers are saved automatically, and you can leave and return at any time using
+                        Your progress is saved automatically, and you can leave and return at any time using
                         this link.
                     </p>
 
-                    <div className="flex items-start gap-3 p-4 bg-card rounded-xl border border-border shadow-sm">
-                        <ShieldCheck className="text-primary shrink-0 mt-0.5" size={20} />
-                        <p className="text-base text-card-foreground font-medium">
+                    <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10 shadow-sm">
+                        <p className="text-lg text-muted-foreground">
                             This is a practice experience, not a live interview.
                         </p>
                     </div>
@@ -72,14 +69,13 @@ export default function InitialsScreen() {
 
                 {/* 5. Visibility Statement */}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground justify-start">
-                    <Eye size={16} />
-                    <span>The person who shared this link may review your responses. Only you can see coaching feedback.</span>
+                    <span>The person who shared this link may review your responses to help guide your preparation. Only you can see coaching feedback received during practice.</span>
                 </div>
 
                 {/* 6. Initials Input */}
                 <div className="space-y-4">
-                    <label htmlFor="initials-input" className="block text-base font-medium text-primary">
-                        Your initials
+                    <label htmlFor="initials-input" className="block text-lg font-medium text-foreground">
+                        Enter your initials to begin
                     </label>
                     <div className="relative group">
                         <input
@@ -89,10 +85,10 @@ export default function InitialsScreen() {
                             onChange={handleInputChange}
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
-                            placeholder="AB"
+                            placeholder="(e.g. AB)"
                             className={cn(
-                                'w-full px-4 py-4 text-2xl tracking-widest font-medium bg-card border rounded-xl outline-none transition-all duration-200',
-                                'placeholder:text-muted-foreground/50 placeholder:font-normal placeholder:tracking-normal',
+                                'w-full px-4 py-4 text-2xl tracking-widest font-medium bg-muted/50 border rounded-xl outline-none transition-all duration-200',
+                                'placeholder:text-muted-foreground/70 placeholder:font-normal placeholder:tracking-normal',
                                 isFocused
                                     ? 'border-primary ring-4 ring-primary/10'
                                     : 'border-border hover:border-input'
