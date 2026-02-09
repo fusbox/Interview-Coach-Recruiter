@@ -17,6 +17,17 @@ export const InitSessionSchema = z.object({
     intakeData: IntakeDataSchema,
 });
 
+export const UpdateSessionSchema = z.object({
+    status: z.string().optional(),
+    currentQuestionIndex: z.number().int().min(0).optional(),
+    role: z.string().min(1).optional(),
+    jobDescription: z.string().optional(),
+    enteredInitials: z.string().min(1).optional(),
+    initialsRequired: z.boolean().optional(),
+    coachingPreference: z.enum(['tier0', 'tier1', 'tier2']).optional(),
+    engagedTimeSeconds: z.number().int().min(0).optional()
+}).strict();
+
 // QuestionPlan schema (minimal validation for structural integrity)
 export const QuestionPlanSchema = z
     .object({

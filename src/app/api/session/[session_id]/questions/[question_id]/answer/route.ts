@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { SupabaseSessionRepository } from "@/lib/server/infrastructure/supabase-session-repository";
 import { z } from "zod";
+import { requireCandidateToken } from "@/lib/server/auth/candidate-token";
 
 const repository = new SupabaseSessionRepository();
 
@@ -14,6 +15,11 @@ export async function PUT(
     { params }: { params: { session_id: string; question_id: string } }
 ) {
     try {
+        const auth = await requireCandidateToken(request, params.session_id);
+        if (!auth.ok) {
+            return NextResponse.json({ error: auth.error }, { status: auth.status });
+        }
+
         const body = await request.json();
         const { text } = DraftSchema.parse(body);
 
@@ -26,12 +32,13 @@ export async function PUT(
         const currentAns = session.answers[params.question_id] || {
             questionId: params.question_id,
             transcript: "",
+            draft: "",
             analysis: undefined
         };
 
         session.answers[params.question_id] = {
             ...currentAns,
-            transcript: text,
+            draft: text,
             // We don't change submittedAt for drafts
         };
 

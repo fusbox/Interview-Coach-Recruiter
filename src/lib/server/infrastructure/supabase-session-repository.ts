@@ -68,7 +68,8 @@ export class SupabaseSessionRepository implements SessionRepository {
 
             answers[a.question_id] = {
                 questionId: a.question_id,
-                transcript: a.final_text || a.draft_text || "",
+                transcript: a.final_text || "",
+                draft: a.draft_text || "",
                 submittedAt: a.submitted_at ? new Date(a.submitted_at).getTime() : undefined,
                 analysis: myEval ? myEval.feedback_json : undefined
             };
@@ -186,6 +187,7 @@ export class SupabaseSessionRepository implements SessionRepository {
                 question_id: qid,
                 session_id: session.id,
                 final_text: ans.transcript,
+                draft_text: ans.draft,
                 submitted_at: ans.submittedAt ? new Date(ans.submittedAt).toISOString() : null,
                 modality: 'text'
             });

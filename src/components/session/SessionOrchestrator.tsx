@@ -48,7 +48,7 @@ export default function SessionOrchestrator() {
                 question={currentQ}
                 currentQuestionIndex={now.currentQuestionIndex}
                 totalQuestions={now.totalQuestions}
-                initialAnswer={currentAns?.transcript || ""}
+                initialAnswer={currentAns?.transcript || currentAns?.draft || ""}
                 onSaveDraft={saveDraft}
                 onSubmit={handleSubmit}
                 retryQuestion={retryQuestion}

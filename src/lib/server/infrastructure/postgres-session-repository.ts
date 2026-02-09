@@ -48,7 +48,8 @@ export class PostgresSessionRepository implements SessionRepository {
 
             answers[a.question_id] = {
                 questionId: a.question_id,
-                transcript: a.final_text || a.draft_text || "",
+                transcript: a.final_text || "",
+                draft: a.draft_text || "",
                 submittedAt: a.submitted_at ? new Date(a.submitted_at).getTime() : undefined,
                 analysis: myEval ? myEval.feedback_json : undefined
             };
@@ -117,14 +118,15 @@ export class PostgresSessionRepository implements SessionRepository {
             for (const [qid, ans] of Object.entries(session.answers)) {
                 await client.query(
                     `INSERT INTO answers (
-                        answer_id, session_id, question_id, attempt_number, modality, final_text, submitted_at, updated_at
-                     ) VALUES (gen_random_uuid(), $1, $2, 1, 'text', $3, $4, NOW())
+                        answer_id, session_id, question_id, attempt_number, modality, final_text, draft_text, submitted_at, updated_at
+                     ) VALUES (gen_random_uuid(), $1, $2, 1, 'text', $3, $4, $5, NOW())
                      ON CONFLICT (question_id, attempt_number) 
-                     DO UPDATE SET final_text = EXCLUDED.final_text, submitted_at = EXCLUDED.submitted_at, updated_at = NOW()`,
+                     DO UPDATE SET final_text = EXCLUDED.final_text, draft_text = EXCLUDED.draft_text, submitted_at = EXCLUDED.submitted_at, updated_at = NOW()`,
                     [
                         session.id,
                         qid,
                         ans.transcript,
+                        ans.draft,
                         ans.submittedAt ? new Date(ans.submittedAt).toISOString() : null
                     ]
                 );

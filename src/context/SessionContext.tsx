@@ -36,6 +36,7 @@ export interface SessionContextType {
     updateAnswerAnalysis: (questionId: string, partialAnalysis: Partial<AnalysisResult>) => void;
     finishSession: () => Promise<void>;
     resetSession: () => void;
+    analyzeCurrentQuestion: () => Promise<void>;
     audioUrls: Record<string, string>;
     cacheAudioUrl: (questionId: string, url: string) => void;
     updateSession: (sessionId: string, updates: Partial<InterviewSession>) => Promise<void>;
@@ -57,6 +58,7 @@ export const SessionContext = createContext<SessionContextType | undefined>(unde
 export interface SessionProviderProps {
     children: ReactNode;
     sessionId?: string;
+    candidateToken?: string;
     initialConfig?: {
         role: string;
         jobDescription?: string;
@@ -68,9 +70,14 @@ export interface SessionProviderProps {
     };
 }
 
-export const SessionProvider: React.FC<SessionProviderProps> = ({ children, sessionId, initialConfig }) => {
+export const SessionProvider: React.FC<SessionProviderProps> = ({
+    children,
+    sessionId,
+    candidateToken,
+    initialConfig
+}) => {
     // The Core Hook manages the state
-    const { session, now, actions } = useDomainSession(sessionId);
+    const { session, now, actions } = useDomainSession(sessionId, candidateToken);
 
     // Bootstrap on mount
     useEffect(() => {
@@ -163,6 +170,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children, sess
         updateAnswerAnalysis,
         finishSession,
         resetSession: actions.reset,
+        analyzeCurrentQuestion: actions.analyzeCurrentQuestion,
         audioUrls: {}, // No audio in V1
         cacheAudioUrl,
         updateSession,

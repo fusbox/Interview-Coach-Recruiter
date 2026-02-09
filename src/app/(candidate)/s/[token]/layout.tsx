@@ -30,7 +30,11 @@ export default async function CandidateTokenLayout({
     }
 
     return (
-        <CandidateLayoutClient sessionId={sessionId} initialConfig={initialConfig}>
+        <CandidateLayoutClient
+            sessionId={sessionId}
+            candidateToken={params.token}
+            initialConfig={initialConfig}
+        >
             {children}
         </CandidateLayoutClient>
     );
