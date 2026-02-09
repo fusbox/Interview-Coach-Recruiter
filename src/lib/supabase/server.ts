@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { cache } from 'react';
 
 export function createClient() {
     const cookieStore = cookies()
@@ -15,7 +16,10 @@ export function createClient() {
                 setAll(cookiesToSet) {
                     try {
                         cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
+                            cookieStore.set(name, value, {
+                                ...options,
+                                secure: process.env.NODE_ENV === 'production',
+                            })
                         )
                     } catch {
                         // The `setAll` method was called from a Server Component.
@@ -43,3 +47,9 @@ export function createAdminClient() {
         }
     )
 }
+
+export const getCachedUser = cache(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
+});

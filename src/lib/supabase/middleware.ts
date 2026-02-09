@@ -2,6 +2,9 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+    const isRecruiter = request.nextUrl.pathname.startsWith('/recruiter');
+    const start = Date.now();
+
     let supabaseResponse = NextResponse.next({
         request,
     })
@@ -20,7 +23,10 @@ export async function updateSession(request: NextRequest) {
                         request,
                     })
                     cookiesToSet.forEach(({ name, value, options }) =>
-                        supabaseResponse.cookies.set(name, value, options)
+                        supabaseResponse.cookies.set(name, value, {
+                            ...options,
+                            secure: process.env.NODE_ENV === 'production',
+                        })
                     )
                 },
             },
@@ -31,7 +37,15 @@ export async function updateSession(request: NextRequest) {
     // supabase.auth.getUser(). A simple mistake could make it very hard to debug
     // issues with users being randomly logged out.
 
-    await supabase.auth.getUser()
+    // Optimization: Skip getUser if no Supabase cookies are present
+    // This avoids unnecessary network calls on public pages for unauthenticated users
+    const hasAuthCookie = request.cookies.getAll().some(c => c.name.startsWith('sb-'));
+
+    if (hasAuthCookie) {
+        await supabase.auth.getUser();
+    }
+
+    if (isRecruiter) console.log(`[Middleware] ${request.nextUrl.pathname} took ${Date.now() - start}ms`);
 
     return supabaseResponse
 }

@@ -1,16 +1,23 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getCachedUser } from '@/lib/supabase/server';
 import { RecruiterSidebar } from '@/components/layout/RecruiterSidebar';
 import { RecruiterMobileDock } from '@/components/layout/RecruiterMobileDock'; // New Dock
 import { ProfileGuard } from '@/components/auth/ProfileGuard';
+import { redirect } from 'next/navigation';
 
 export default async function RecruiterLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    console.log("[RecruiterLayout] Start");
     const supabase = createClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getCachedUser();
+    console.log("[RecruiterLayout] User:", user?.id);
+
+    if (!user) {
+        redirect('/login');
+    }
 
     // Fetch profile if user exists
     let profile = null;

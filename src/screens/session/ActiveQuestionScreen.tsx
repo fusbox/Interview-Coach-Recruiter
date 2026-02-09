@@ -6,9 +6,8 @@ import { useSpeechToText } from "@/hooks/audio/useSpeechToText";
 import { useAudioRecording } from "@/hooks/audio/useAudioRecording";
 import { useTextToSpeech } from "@/hooks/audio/useTextToSpeech";
 import AudioVisualizer from "@/components/audio/AudioVisualizer";
-import { Mic, MessageSquareText, Lightbulb, Check, Volume2, StopCircle, Loader2, Send, X } from "lucide-react"
+import { Mic, Lightbulb, Volume2, StopCircle, Loader2, X, ArrowRight, Keyboard } from "lucide-react"
 import { useSession } from "@/context/SessionContext"
-// import { useEngagementTracker } from "@/hooks/useEngagementTracker"
 import { EngagementDebugOverlay } from "@/components/debug/EngagementDebugOverlay"
 import { cn } from "@/lib/cn"
 
@@ -29,7 +28,7 @@ interface ActiveQuestionScreenProps {
 export default function ActiveQuestionScreen({
     question,
     currentQuestionIndex,
-    totalQuestions,
+    totalQuestions, // eslint-disable-line @typescript-eslint/no-unused-vars
     initialAnswer,
     onSaveDraft,
     onSubmit,
@@ -37,7 +36,16 @@ export default function ActiveQuestionScreen({
     goToQuestion,
     nextQuestion
 }: ActiveQuestionScreenProps) {
-    const { session, updateSession } = useSession();
+    const {
+        session,
+        // updateSession, 
+        trackEvent,
+        engagementDebugEvents,
+        // clearDebugEvents,
+        isEngagementWindowOpen,
+        engagementWindowTimeRemaining
+    } = useSession();
+
     // compute currentAns locally for Revisit Mode logic
     const currentAns = session?.answers[question.id];
 
@@ -47,11 +55,11 @@ export default function ActiveQuestionScreen({
     const [isSaving, setIsSaving] = useState(false);
     const [showDebug, setShowDebug] = useState(false);
     const [mode, setMode] = useState<'voice' | 'text'>('voice');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
 
     // --- Audio Hooks ---
     const {
-        isListening,
+        // isListening,
         transcript,
         startListening,
         stopListening,
@@ -76,7 +84,7 @@ export default function ActiveQuestionScreen({
     // Sync transcripts logic
     useEffect(() => {
         if (transcript) {
-            setAnswer(prev => {
+            setAnswer(prev => { // eslint-disable-line @typescript-eslint/no-unused-vars
                 // If the user hasn't typed anything manually (or specifically focused text mode?), replace?
                 // For now, let's just use the transcript as the source of truth when listening.
                 return transcript;
@@ -88,7 +96,7 @@ export default function ActiveQuestionScreen({
         if (isRecording) {
             trackEvent('tier2', 'mic_stop');
             stopListening();
-            const blob = await stopRecording();
+            await stopRecording();
             // ... (rest of logic)
         } else {
             trackEvent('tier2', 'mic_start');
@@ -113,7 +121,6 @@ export default function ActiveQuestionScreen({
     const [selectedHintCat, setSelectedHintCat] = useState<string | null>(null);
 
     // Engagement Tracker (Hoisted)
-    const { trackEvent, engagementDebugEvents, clearDebugEvents } = useSession();
     const hasLoggedEntry = useRef(false);
 
     // Trigger window open on mount/entry
@@ -187,7 +194,6 @@ export default function ActiveQuestionScreen({
     return (
         <div className="flex flex-col bg-slate-50 relative selection:bg-emerald-100">
 
-            {/* Header / Nav */}
             {/* Header / Nav */}
             <header className="px-6 py-4 border-b bg-white flex justify-between items-center sticky top-0 z-10">
                 {/* Left Spacer (matches width of Right Status) - roughly 100px */}
@@ -329,20 +335,7 @@ export default function ActiveQuestionScreen({
                         <div className="flex flex-col gap-3">
                             <Button
                                 onClick={() => {
-                                    // Try Again Action
-                                    setAnswer(""); // Clear local state
-                                    // We need to trigger a UI update that clears the "submittedAt" LOCALLY for this session view
-                                    // so the input block reappears.
-                                    // The easiest way is to use the `retryQuestion` action (which hits /retry and clears state)
-                                    // OR manually update session context if we want to avoid server roundtrip latency, but /retry is safer.
-                                    // Verify if retryQuestion does what we want: clear submittedAt. YES.
-                                    // But user asked for "Try My Answer Again" button.
-                                    // And "Continue to Next Question".
-
-                                    // Let's call retryQuestion provided by props? ActiveQuestionScreen doesn't have retry in props!
-                                    // It has `onSubmit`. 
-                                    // We need to pull `retryQuestion` from useSession inside component?
-                                    // Yes, `useSession` is imported.
+                                    setAnswer("");
                                     retryQuestion();
                                 }}
                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all"
@@ -353,11 +346,6 @@ export default function ActiveQuestionScreen({
                             <Button
                                 variant="ghost"
                                 onClick={() => {
-                                    // Continue to next question
-                                    // Find next question index
-                                    // Or just nextQuestion() action?
-                                    // Logic: "Jump to lead question". 
-                                    // We need to find the first unanswered question.
                                     const firstUnanswered = session?.questions.find((_, idx) => {
                                         const qid = session.questions[idx].id;
                                         return !session.answers[qid]?.submittedAt;
@@ -365,8 +353,6 @@ export default function ActiveQuestionScreen({
                                     if (firstUnanswered) {
                                         goToQuestion(firstUnanswered.index);
                                     } else {
-                                        // All done? Go to summary?
-                                        // For now nextQuestion() might work if at end.
                                         nextQuestion();
                                     }
                                 }}
@@ -378,26 +364,23 @@ export default function ActiveQuestionScreen({
                     </div>
                 ) : (
                     // --- INPUT MODE ---
-                    <div className="bg-muted/30 rounded-xl shadow-inner border border-slate-200/50 p-1 flex flex-col transition-all overflow-hidden relative min-h-[400px]">
-
-                        {/* Mode Toggle Tabs - Removed per spec */}
-                        {/* <div className="flex justify-center p-2 bg-slate-50/50 border-b border-slate-100">...</div> */}
+                    <div className="relative flex-1 min-h-[400px] flex flex-col w-full">
 
                         {mode === 'voice' ? (
-                            <div className="flex-1 relative flex flex-col items-center justify-center p-6 bg-slate-50/30">
+                            <>
                                 {/* Visualizer Layer */}
                                 <div className="absolute inset-0 flex items-center justify-center opacity-40 pointer-events-none">
                                     {isRecording && (
                                         <AudioVisualizer
                                             stream={mediaStream}
                                             isRecording={isRecording}
-                                            className="w-full h-full max-w-sm"
+                                            className="w-full h-full max-w-sm bg-transparent"
                                         />
                                     )}
                                 </div>
 
-                                {/* Mic Button - Absolute Center */}
-                                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                                {/* Mic Button - Absolute Center of ENTIRE container */}
+                                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                                     <button
                                         onClick={handleToggleRecording}
                                         disabled={isRecordingInitializing || isSubmitting}
@@ -405,7 +388,7 @@ export default function ActiveQuestionScreen({
                                             "pointer-events-auto group relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300",
                                             isRecording
                                                 ? "bg-red-50 text-red-500 border-4 border-red-200 scale-110"
-                                                : "bg-blue-600 text-white hover:bg-blue-700"
+                                                : "bg-blue-600 text-white hover:bg-blue-700 shadow-xl"
                                         )}
                                     >
                                         {isRecordingInitializing ? (
@@ -423,9 +406,9 @@ export default function ActiveQuestionScreen({
                                     </button>
                                 </div>
 
-                                {/* Text - Positioned relatively below the center */}
-                                <div className="absolute top-1/2 left-0 right-0 pt-16 flex justify-center z-10 pointer-events-none">
-                                    <div className="pointer-events-auto text-center space-y-2 max-w-md">
+                                {/* Status Text - Positioned below center */}
+                                <div className="absolute top-1/2 left-0 right-0 pt-16 flex justify-center z-20 pointer-events-none">
+                                    <div className="pointer-events-auto text-center space-y-2 max-w-md px-4">
                                         <p className="text-sm font-normal text-slate-400">
                                             {isRecording ? "Listening..." : "Tap the microphone to start recording"}
                                         </p>
@@ -436,11 +419,13 @@ export default function ActiveQuestionScreen({
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+
+                                <div className="flex-1" />
+                            </>
                         ) : (
-                            <div className="relative flex-1">
+                            <div className="relative flex-1 p-4 mb-4">
                                 <textarea
-                                    className="w-full h-full bg-transparent p-4 sm:p-6 text-lg text-slate-800 placeholder:text-slate-300 outline-none resize-none"
+                                    className="w-full h-full bg-transparent text-lg text-slate-800 placeholder:text-slate-300 outline-none resize-none"
                                     placeholder="Type your answer here..."
                                     value={answer}
                                     onChange={(e) => {
@@ -453,63 +438,74 @@ export default function ActiveQuestionScreen({
                             </div>
                         )}
 
-                        <div className="bg-slate-50/80 p-3 rounded-lg border-t border-slate-100 flex justify-between items-center backdrop-blur-sm">
-                            <div className="px-1 flex items-center gap-2">
+                        {/* Actions Footer */}
+                        <div className="p-4 flex flex-col items-center gap-4 z-30 relative mt-auto">
+
+                            {/* Next Button */}
+                            {answer.trim().length > 0 && (
+                                <Button
+                                    size="lg"
+                                    onClick={() => handleLocalSubmit(answer)}
+                                    className="w-full sm:w-auto min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all animate-in zoom-in-95 duration-200"
+                                >
+                                    Next <ArrowRight className="ml-2 w-4 h-4" />
+                                </Button>
+                            )}
+
+                            {/* Saving Indicator */}
+                            <div className="h-4">
                                 <span className={cn(
-                                    "hidden sm:inline text-[10px] uppercase font-bold tracking-widest transition-colors duration-300",
-                                    isSaving ? "text-amber-500" : (answer ? "text-slate-300" : "opacity-0")
+                                    "text-[10px] uppercase font-bold tracking-widest transition-colors duration-300",
+                                    isSaving ? "text-amber-500" : "opacity-0"
                                 )}>
-                                    {isSaving ? "Saving..." : "Saved"}
+                                    {isSaving ? "Saving..." : ""}
                                 </span>
                             </div>
 
-                            <div className="flex gap-2 w-full sm:w-auto justify-end">
-                                {mode === 'voice' && !isRecording && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setMode('text')}
-                                        className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-normal shrink-0"
-                                    >
-                                        I'll type my answer
-                                    </Button>
-                                )}
-                                <Button
-                                    size="default"
-                                    onClick={() => handleLocalSubmit(answer)}
-                                    disabled={!answer.trim()}
+                            {/* Mode Toggle */}
+                            <div className="flex items-center gap-1 p-1 bg-slate-200/50 rounded-full backdrop-blur-sm">
+                                <button
+                                    onClick={() => setMode('voice')}
                                     className={cn(
-                                        "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/10 hover:shadow-lg hover:shadow-blue-900/20 transition-all shrink-0",
-                                        !answer.trim() && "opacity-50 grayscale shadow-none"
+                                        "p-2 rounded-full transition-all duration-200",
+                                        mode === 'voice'
+                                            ? "bg-white text-blue-600 shadow-sm scale-110"
+                                            : "text-slate-400 hover:text-slate-600"
                                     )}
+                                    title="Voice Mode"
                                 >
-                                    Submit Answer <Send className="ml-2 w-4 h-4" />
-                                </Button>
+                                    <Mic size={20} />
+                                </button>
+                                <button
+                                    onClick={() => setMode('text')}
+                                    className={cn(
+                                        "p-2 rounded-full transition-all duration-200",
+                                        mode === 'text'
+                                            ? "bg-white text-blue-600 shadow-sm scale-110"
+                                            : "text-slate-400 hover:text-slate-600"
+                                    )}
+                                    title="Text Mode"
+                                >
+                                    <Keyboard size={20} />
+                                </button>
                             </div>
                         </div>
                     </div>
                 )}
+
                 <div className="h-4" />
             </main>
-
-
 
             {/* Debug Overlay */}
             <EngagementDebugOverlay
                 isVisible={showDebug}
                 onClose={() => setShowDebug(false)}
-                // We pass a mock or adapted tracker object since we hoisted state
-                // Or update DebugOverlay to take raw props?
-                // Let's assume we can construct the object here or update DebugOverlay.
-                // Updating DebugOverlay is cleaner but let's see if we can just pass the context values.
-                // The tracker object returned by useEngagementTracker has { totalEngagedSeconds, isWindowOpen, trackEvent, debugEvents, windowTimeRemaining, clearDebugEvents }
-                // We have these in context (some of them).
                 tracker={{
                     totalEngagedSeconds: session?.engagedTimeSeconds || 0,
-                    isWindowOpen: useSession().isEngagementWindowOpen,
+                    isWindowOpen: isEngagementWindowOpen,
                     trackEvent,
                     debugEvents: engagementDebugEvents,
-                    windowTimeRemaining: useSession().engagementWindowTimeRemaining,
+                    windowTimeRemaining: engagementWindowTimeRemaining,
                     clearDebugEvents: () => console.log("Clear events not hoisted")
                 }}
             />
@@ -518,6 +514,6 @@ export default function ActiveQuestionScreen({
                 onClick={() => setShowDebug(true)}
                 title="Debug"
             />
-        </div >
+        </div>
     )
 }
