@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { AnalysisResult } from '@/lib/domain/types';
-import { CheckCircle2, AlertCircle, ChevronDown, ChevronRight, X, ArrowRight, CheckCircle } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronRight, X, ArrowRight, CheckCircle } from 'lucide-react';
 
 interface FeedbackDrawerProps {
     isOpen: boolean;
@@ -26,7 +26,6 @@ export function FeedbackDrawer({
     isLastQuestion = false
 }: FeedbackDrawerProps) {
     const [whyOpen, setWhyOpen] = useState(false);
-    const [obsOpen, setObsOpen] = useState(false);
 
     // Helper: Label Mapping
     const getDimensionLabel = (dim: string) => {

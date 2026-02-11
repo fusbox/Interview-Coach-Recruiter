@@ -15,6 +15,17 @@ export interface Blueprint {
         title: string;
         description: string;
     }>;
+    readingLevel?: {
+        mode?: string;
+        maxSentenceWords?: number;
+        avoidJargon?: boolean;
+    };
+}
+
+export interface Competency {
+    id: string;
+    name: string;
+    definition: string;
 }
 
 /**
@@ -92,7 +103,7 @@ export interface AnalysisResult {
 
     // Legacy / Extended Support (Optional - Mapped from V2 where possible or deprecated)
     readinessBand?: 'RL1' | 'RL2' | 'RL3' | 'RL4'; // Deprecated
-    confidence?: any; // Deprecated (use meta.confidence)
+    confidence?: string; // Deprecated (use meta.confidence)
     coachReaction?: string; // Mapped to ack
     strengths?: string[]; // Deprecated
     opportunities?: string[]; // Deprecated
@@ -133,5 +144,5 @@ export interface InterviewSession {
         email: string;
     };
     engagedTimeSeconds?: number;
-    intakeData?: any; // Full intake JSON for context
+    intakeData?: Record<string, unknown>; // Full intake JSON for context
 }

@@ -11,6 +11,8 @@ export function VideoFeed({ className, onStreamReady }: VideoFeedProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const onStreamReadyRef = useRef(onStreamReady);
+    onStreamReadyRef.current = onStreamReady;
 
     useEffect(() => {
         let mounted = true;
@@ -33,8 +35,8 @@ export function VideoFeed({ className, onStreamReady }: VideoFeedProps) {
                     if (videoRef.current) {
                         videoRef.current.srcObject = localStream;
                     }
-                    if (onStreamReady) {
-                        onStreamReady(localStream);
+                    if (onStreamReadyRef.current) {
+                        onStreamReadyRef.current(localStream);
                     }
                 }
             } catch (err) {

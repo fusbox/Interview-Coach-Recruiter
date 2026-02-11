@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 
 // Use a global variable to prevent multiple pools during HMR (Hot Module Replacement) in development
 declare global {
+    // eslint-disable-next-line no-var
     var pgPool: Pool | undefined;
 }
 

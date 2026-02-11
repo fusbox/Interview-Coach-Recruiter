@@ -5,7 +5,7 @@
  * Transforms raw session data (Layer 1) into interpretive signals (Layer 3).
  */
 
-import { InterviewSession, Answer, AnalysisResult } from '@/lib/domain/types';
+import { InterviewSession } from '@/lib/domain/types';
 
 // --- Layer 2: Derived Metrics ---
 

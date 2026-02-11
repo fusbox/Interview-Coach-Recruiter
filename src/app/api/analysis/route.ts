@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { AnalyzeAnswerSchema } from "@/lib/domain/schemas";
 import { AIService } from "@/lib/server/services/ai-service";
+import { Question, Blueprint } from "@/lib/domain/types";
 
 export async function POST(request: Request) {
     try {
@@ -24,8 +25,8 @@ export async function POST(request: Request) {
             answerText = input;
         } else if (input && typeof input === "object" && "data" in input && "mimeType" in input) {
             audioData = {
-                base64: (input as any).data,
-                mimeType: (input as any).mimeType
+                base64: (input as Record<string, string>).data,
+                mimeType: (input as Record<string, string>).mimeType
             };
         } else {
             return NextResponse.json({ error: "Invalid input format" }, { status: 400 });
@@ -41,10 +42,10 @@ export async function POST(request: Request) {
         };
 
         const analysis = await AIService.analyzeAnswer(
-            questionObj as any,
+            questionObj as Question,
             answerText,
             audioData,
-            blueprint as any,
+            blueprint as Blueprint | undefined,
             intakeData
         );
 

@@ -15,15 +15,15 @@ export async function POST(request: Request) {
 
         const { audioData, mimeType } = await TTSService.generateSpeech(text);
 
-        return new NextResponse(audioData, {
+        return new NextResponse(new Uint8Array(audioData), {
             headers: {
                 'Content-Type': mimeType,
                 'Content-Length': audioData.length.toString(),
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("TTS API Error:", error);
-        return NextResponse.json({ error: error.message || "TTS Failed" }, { status: 500 });
+        return NextResponse.json({ error: error instanceof Error ? error.message : "TTS Failed" }, { status: 500 });
     }
 }

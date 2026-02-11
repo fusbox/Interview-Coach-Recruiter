@@ -13,7 +13,7 @@ import LoadingScreen from "./LoadingScreen";
 import SessionSavedScreen from "./SessionSavedScreen";
 import { Question } from "@/lib/domain/types";
 export default function SessionOrchestrator() {
-    const { now, session, startSession, nextQuestion, retryQuestion, goToQuestion, saveAnswer, saveDraft, isLoading /*, updateSession */ } = useSession();
+    const { now, session, startSession, isLoading /*, updateSession */ } = useSession();
 
     // Computed Context for Screens
     // TODO: Improve cleaner selector access either in Context or Hook
@@ -24,7 +24,6 @@ export default function SessionOrchestrator() {
 
     // Actions Wrapper
     const handleStart = () => startSession("Product Manager"); // Default for V1
-    const handleSubmit = (text: string) => saveAnswer(now.currentQuestionId || "", { text, analysis: null });
 
     // Render Logic
     if (isLoading && !session) return <LoadingScreen />; // Initial load

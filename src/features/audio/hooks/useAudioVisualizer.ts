@@ -1,5 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
+interface WebkitWindow extends Window {
+    webkitAudioContext?: typeof AudioContext;
+}
+
 export const useAudioVisualizer = () => {
     const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -9,7 +13,7 @@ export const useAudioVisualizer = () => {
     // Initialize AudioContext lazily
     const initAudioContext = useCallback(() => {
         if (!audioContextRef.current) {
-            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            const AudioContextClass = window.AudioContext || (window as unknown as WebkitWindow).webkitAudioContext;
             audioContextRef.current = new AudioContextClass();
         }
         return audioContextRef.current;

@@ -1,4 +1,4 @@
-import { InterviewSession, Question, SessionStatus } from "@/lib/domain/types";
+import { InterviewSession, Question, AnalysisResult } from "@/lib/domain/types";
 import { uuidv7 } from "uuidv7";
 import { InitSessionSchema } from "@/lib/domain/schemas";
 import { z } from "zod";
@@ -66,7 +66,7 @@ export function submitAnswer(
     session: InterviewSession,
     questionId: string,
     answerText: string,
-    analysis?: any
+    analysis?: AnalysisResult
 ): InterviewSession {
     // Basic state update - in a real app, this might trigger eval
     const updatedAnswers = {

@@ -72,8 +72,7 @@ export function MobileSidebar({ children }: MobileSidebarProps) {
                                 */}
                                 {React.Children.map(children, child => {
                                     if (React.isValidElement(child)) {
-                                        // @ts-ignore - dynamic prop injection
-                                        return React.cloneElement(child, { onNavigate: () => setIsOpen(false) });
+                                        return React.cloneElement(child, { onNavigate: () => setIsOpen(false) } as Record<string, unknown>);
                                     }
                                     return child;
                                 })}

@@ -15,9 +15,8 @@ export function selectNow(session?: InterviewSession): NowState {
         };
     }
 
-    const { status, initialsRequired, candidateName, questions, currentQuestionIndex, answers } = session;
+    const { status, initialsRequired, questions, currentQuestionIndex, answers } = session;
 
-    const hasInitials = !!candidateName;
     const isComplete = status === "COMPLETED";
     const currentQ = questions[currentQuestionIndex];
     const currentAns = currentQ ? answers[currentQ.id] : undefined;

@@ -24,7 +24,7 @@ export async function POST(
         try {
             const body = await request.json();
             retryContext = body.retryContext;
-        } catch (e) {
+        } catch {
             // No body or invalid JSON, ignore
         }
 

@@ -45,7 +45,7 @@ export function ProfileGuard() {
         if (!checked) {
             checkProfile();
         }
-    }, [pathname, router]);
+    }, [pathname, router, checked]);
 
     // This component renders nothing, just logic
     return null;

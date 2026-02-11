@@ -3,7 +3,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 export const useTextToSpeech = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
@@ -46,8 +45,6 @@ export const useTextToSpeech = () => {
 
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
-
-            setAudioUrl(url);
 
             if (audioRef.current) {
                 audioRef.current.src = url;

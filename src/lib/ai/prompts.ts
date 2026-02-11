@@ -3,7 +3,7 @@ import { Question, Blueprint } from "@/lib/domain/types";
 export function buildAnalysisContext(
     question: Question,
     blueprint: Blueprint | undefined,
-    intakeData: any,
+    intakeData: Record<string, unknown> | undefined,
     retryContext?: { trigger: 'user' | 'coach'; focus?: string }
 ): string {
 
@@ -14,7 +14,7 @@ export function buildAnalysisContext(
         blueprintContext = `
 BLUEPRINT CONTEXT:
 Job Role: ${blueprint.title || 'Unknown Role'}
-Competencies: ${JSON.stringify(blueprint.competencies?.map((c: any) => ({
+Competencies: ${JSON.stringify(blueprint.competencies?.map((c: { id: string; title?: string; name?: string; description?: string; definition?: string }) => ({
             id: c.id,
             name: c.title || c.name,
             definition: c.description || c.definition

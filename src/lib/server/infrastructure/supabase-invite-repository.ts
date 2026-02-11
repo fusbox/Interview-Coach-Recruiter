@@ -95,7 +95,32 @@ export class SupabaseInviteRepository implements InviteRepository {
         const { data, error } = await supabase ...
         */
 
-        const session = data.sessions as any;
+        // Define row shapes for Supabase data
+        interface SessionRow {
+            session_id: string;
+            target_role: string;
+            job_description?: string;
+            recruiter_id: string;
+            created_at: string;
+            intake_json?: {
+                candidate?: {
+                    firstName?: string;
+                    lastName?: string;
+                    name?: string;
+                    email?: string;
+                    reqId?: string;
+                };
+            };
+        }
+
+        interface QuestionRow {
+            question_text: string;
+            question_index: number;
+            category?: string;
+            competencies?: { category?: string };
+        }
+
+        const session = data.sessions as SessionRow;
 
         // Fetch questions separately to ensure order
         const { data: qData } = await supabase
@@ -104,7 +129,7 @@ export class SupabaseInviteRepository implements InviteRepository {
             .eq('session_id', session.session_id)
             .order('question_index');
 
-        const questions = (qData || []).map((q: any) => ({
+        const questions = (qData || []).map((q: QuestionRow) => ({
             text: q.question_text,
             index: q.question_index,
             category: q.category || q.competencies?.category || "General"

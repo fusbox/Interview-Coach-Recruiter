@@ -33,11 +33,7 @@ export async function POST(request: Request) {
             // Dev Bypass for mobile testing
             if (process.env.NODE_ENV === 'development') {
                 console.warn("⚠️ Bypass Auth for Dev Environment");
-                // Mock user object
-                const mockUser = { id: "00000000-0000-0000-0000-000000000000" };
-                // Continue with mock user
-                // redefine user variable or just handle it below?
-                // Easier to Just proceed with mock id in the invite creation
+                // Continue with fallback user id below
             } else {
                 return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
             }
@@ -77,10 +73,10 @@ export async function POST(request: Request) {
             link: `/s/${token}`
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Invite Create Error:", error);
         return NextResponse.json({
-            error: error instanceof z.ZodError ? error.issues : error.message || "Failed to create invite"
+            error: error instanceof z.ZodError ? error.issues : (error instanceof Error ? error.message : "Failed to create invite")
         }, { status: 500 });
     }
 }

@@ -13,7 +13,7 @@ export class AIService {
         answerText: string | null,
         audioData: { base64: string; mimeType: string } | null,
         blueprint?: Blueprint,
-        intakeData?: any,
+        intakeData?: Record<string, unknown>,
         retryContext?: { trigger: 'user' | 'coach'; focus?: string }
     ): Promise<AnalysisResult> {
 
@@ -127,7 +127,7 @@ OUTPUT REQUIREMENTS:
         }
 
         try {
-            const parts: any[] = [
+            const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
                 { text: systemPrompt },
                 { text: contextPrompt }, // Injected Blueprint/Intake Context
                 { text: schemaPrompt }
