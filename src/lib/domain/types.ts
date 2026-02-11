@@ -111,6 +111,7 @@ export interface AnalysisResult {
  */
 export interface InterviewSession {
     id: string;
+    recruiterId?: string; // Added for ownership check
     candidateName?: string;
     role: string;
     jobDescription?: string;
@@ -134,4 +135,14 @@ export interface InterviewSession {
     };
     engagedTimeSeconds?: number;
     intakeData?: any; // Full intake JSON for context
+}
+
+export interface SessionSummary {
+    id: string;
+    candidateName: string;
+    role: string;
+    status: SessionStatus;
+    createdAt: number;
+    questionCount: number;
+    answerCount: number;
 }
