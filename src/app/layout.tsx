@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import '@/index.css' // Import global styles
 import { cn } from '@/lib/cn'
+import { ScrollToTop } from '@/components/navigation/ScrollToTop'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -31,7 +32,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>{children}</body>
+            <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
+                <ScrollToTop />
+                {children}
+            </body>
         </html>
     )
 }

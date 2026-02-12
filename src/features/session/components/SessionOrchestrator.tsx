@@ -12,8 +12,15 @@ import LoadingScreen from "./LoadingScreen";
 // import IntakeScreen from "./IntakeScreen";
 import SessionSavedScreen from "./SessionSavedScreen";
 import { Question } from "@/lib/domain/types";
+import { useEffect } from "react";
+
 export default function SessionOrchestrator() {
     const { now, session, startSession, isLoading /*, updateSession */ } = useSession();
+
+    // Reset scroll on status or question change (SPA flow)
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [now.status, now.currentQuestionId]);
 
     // Computed Context for Screens
     // TODO: Improve cleaner selector access either in Context or Hook

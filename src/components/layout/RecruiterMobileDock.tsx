@@ -29,7 +29,12 @@ export function RecruiterMobileDock() {
         }
     });
 
-    const isActive = (path: string) => pathname === path || pathname?.startsWith(`${path}/`);
+    const isActive = (path: string) => {
+        if (path === '/recruiter') {
+            return pathname === '/recruiter' || pathname?.startsWith('/recruiter/sessions');
+        }
+        return pathname === path || pathname?.startsWith(`${path}/`);
+    };
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -39,7 +44,7 @@ export function RecruiterMobileDock() {
 
     const navItems = [
         { icon: Plus, label: "Create", href: "/recruiter/create" },
-        { icon: List, label: "Sessions", href: "#" }, // Placeholder
+        { icon: List, label: "Sessions", href: "/recruiter" },
         { icon: Users, label: "Candidates", href: "#" }, // Placeholder
         { icon: Settings, label: "Settings", href: "/recruiter/settings" },
     ];

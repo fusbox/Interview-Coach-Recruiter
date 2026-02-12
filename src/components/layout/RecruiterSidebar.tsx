@@ -29,7 +29,12 @@ export function RecruiterSidebar({ className, onNavigate, user, profile }: Recru
         : "Recruiter";
     const displayEmail = user?.email || "recruiter@example.com";
 
-    const isActive = (path: string) => pathname === path || pathname?.startsWith(`${path}/`);
+    const isActive = (path: string) => {
+        if (path === '/recruiter') {
+            return pathname === '/recruiter' || pathname?.startsWith('/recruiter/sessions');
+        }
+        return pathname === path || pathname?.startsWith(`${path}/`);
+    };
 
     return (
         <aside className={cn("bg-white border-r flex flex-col h-screen sticky top-0", className)}>
@@ -63,8 +68,13 @@ export function RecruiterSidebar({ className, onNavigate, user, profile }: Recru
                 </Link>
 
                 <Link
-                    href="#"
-                    className="block p-2 rounded text-muted-foreground hover:bg-slate-100 transition-colors"
+                    href="/recruiter"
+                    className={cn(
+                        "block p-2 rounded font-medium transition-all duration-200",
+                        isActive('/recruiter')
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-slate-100 hover:text-slate-900"
+                    )}
                     onClick={onNavigate}
                 >
                     My Sessions
