@@ -8,24 +8,22 @@ export type SessionStatus =
     | 'COMPLETED'
     | 'ERROR';
 
+export interface Competency {
+    id: string;
+    title: string;
+    description: string;
+    name?: string; // Optional alias for title (tips-service compatibility)
+    definition?: string; // Optional alias for description (tips-service compatibility)
+}
+
 export interface Blueprint {
     title: string;
-    competencies: Array<{
-        id: string;
-        title: string;
-        description: string;
-    }>;
+    competencies: Competency[];
     readingLevel?: {
         mode?: string;
         maxSentenceWords?: number;
         avoidJargon?: boolean;
     };
-}
-
-export interface Competency {
-    id: string;
-    name: string;
-    definition: string;
 }
 
 /**
@@ -122,6 +120,7 @@ export interface AnalysisResult {
  */
 export interface InterviewSession {
     id: string;
+    recruiterId?: string; // Added for ownership check
     candidateName?: string;
     role: string;
     jobDescription?: string;
@@ -145,4 +144,14 @@ export interface InterviewSession {
     };
     engagedTimeSeconds?: number;
     intakeData?: Record<string, unknown>; // Full intake JSON for context
+}
+
+export interface SessionSummary {
+    id: string;
+    candidateName: string;
+    role: string;
+    status: SessionStatus;
+    createdAt: number;
+    questionCount: number;
+    answerCount: number;
 }

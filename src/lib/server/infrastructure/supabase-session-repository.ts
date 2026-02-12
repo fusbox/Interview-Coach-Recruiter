@@ -1,5 +1,5 @@
 import { SessionRepository } from "@/lib/domain/repository";
-import { InterviewSession, Question, Answer } from "@/lib/domain/types";
+import { InterviewSession, SessionSummary, SessionStatus, Question, Answer } from "@/lib/domain/types";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { Logger } from "@/lib/logger";
 
@@ -8,6 +8,53 @@ export class SupabaseSessionRepository implements SessionRepository {
         // In the new model, the session might already exist if via Invite.
         // But for consistency, we Upsert the session metadata.
         await this.update(session);
+    }
+
+    async listByRecruiter(recruiterId: string): Promise<SessionSummary[]> {
+        const supabase = createClient();
+
+        // 1. Fetch Sessions
+        const { data: sessions, error } = await supabase
+            .from('sessions')
+            .select(`
+                session_id,
+                target_role,
+                status,
+                created_at,
+                intake_json
+            `)
+            .eq('recruiter_id', recruiterId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            Logger.error("[SupabaseSessionRepo] List Failed", error);
+            throw new Error(error.message);
+        }
+
+        if (!sessions) return [];
+
+        // 2. Map to Summary
+        // Note: For counts, we would need to join or aggregate.
+        // For MVP/performance, we might skip counts or fetch them separately if critical.
+        // Let's do a lightweight fetch for counts if needed, but for now 0 is fine or we can do a second query.
+        // Actually, let's just return basic info first as getting counts for ALL sessions might be heavy without a view.
+
+        return sessions.map((s: { session_id: string; target_role: string; status: SessionStatus; created_at: string; intake_json?: { candidate?: { firstName?: string; lastName?: string; name?: string } } }) => {
+            const c = s.intake_json?.candidate || {};
+            const candidateName = (c.firstName && c.lastName)
+                ? `${c.firstName} ${c.lastName}`
+                : (c.name || "Anonymous Candidate");
+
+            return {
+                id: s.session_id,
+                candidateName,
+                role: s.target_role,
+                status: s.status,
+                createdAt: new Date(s.created_at).getTime(),
+                questionCount: 0, // Placeholder
+                answerCount: 0    // Placeholder
+            };
+        });
     }
 
     async get(id: string): Promise<InterviewSession | null> {
@@ -120,6 +167,7 @@ export class SupabaseSessionRepository implements SessionRepository {
 
         return {
             id: sData.session_id,
+            recruiterId: sData.recruiter_id, // Map recruiter_id
             status: derivedStatus,
             role: sData.target_role,
             jobDescription: sData.job_description,
