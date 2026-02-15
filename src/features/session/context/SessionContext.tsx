@@ -126,8 +126,8 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({
         actions.retry(context);
     };
 
-    const saveAnswer = (_qid: string, ans: { text?: string }) => {
-        if (ans.text) actions.submit(ans.text);
+    const saveAnswer = async (_qid: string, ans: { text?: string }) => {
+        if (ans.text) await actions.submit(ans.text);
     };
 
     const goToQuestion = (index: number) => {

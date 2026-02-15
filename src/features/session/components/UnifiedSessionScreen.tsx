@@ -102,10 +102,17 @@ export default function UnifiedSessionScreen() {
 
     // Mic Warm-up Optimization
     useEffect(() => {
-        if (mode === 'voice' && !isRecording) {
+        if (mode === 'voice' && !isRecording && !hasSubmitted) {
             warmUp();
         }
-    }, [mode, isRecording, warmUp]);
+        return () => {
+            // Cleanup on mode switch or unmount if not recording
+            if (mode !== 'voice' || hasSubmitted) {
+                stopListening();
+                resetAudio();
+            }
+        };
+    }, [mode, isRecording, warmUp, hasSubmitted, resetAudio, stopListening]);
 
     // Auto-play question audio on entry
     useEffect(() => {
@@ -149,7 +156,7 @@ export default function UnifiedSessionScreen() {
 
         trackEvent('tier3', 'answer_submit');
         if (currentQuestionId) {
-            saveAnswer(currentQuestionId, {
+            await saveAnswer(currentQuestionId, {
                 text: finalAnswer,
                 analysis: null,
                 transcript: mode === 'voice' ? finalAnswer : undefined
@@ -157,7 +164,8 @@ export default function UnifiedSessionScreen() {
         }
 
         // Cleanup local states
-        if (mode === 'text') {
+        if (mode === 'voice') {
+            stopListening();
             resetTranscript();
             resetAudio();
         } else {
@@ -296,6 +304,7 @@ export default function UnifiedSessionScreen() {
                                                 <button
                                                     onClick={() => {
                                                         setMode('text');
+                                                        stopListening();
                                                         resetTranscript();
                                                         resetAudio();
                                                     }}
