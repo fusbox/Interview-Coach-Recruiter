@@ -77,7 +77,8 @@ export default function ActiveQuestionScreen({
         speak,
         stop: stopSpeaking,
         isPlaying: isSpeaking,
-        isLoading: isTTSLoading
+        isLoading: isTTSLoading,
+        prefetch
     } = useTextToSpeech();
 
     // Sync transcripts logic REMOVED to decouple modes
@@ -107,9 +108,25 @@ export default function ActiveQuestionScreen({
         if (isSpeaking) {
             stopSpeaking();
         } else {
-            speak(question.text);
+            speak(question.text, question.id);
         }
     };
+
+    // Auto-play question audio on entry
+    useEffect(() => {
+        if (question && !currentAns?.submittedAt) {
+            speak(question.text, question.id);
+        }
+        // Prefetch next question audio
+        if (session?.questions) {
+            const nextIdx = currentQuestionIndex + 1;
+            if (nextIdx < session.questions.length) {
+                const nextQ = session.questions[nextIdx];
+                prefetch(nextQ.id, nextQ.text);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [question.id]);
 
     // Hint System State
     const [hintOpen, setHintOpen] = useState(false);

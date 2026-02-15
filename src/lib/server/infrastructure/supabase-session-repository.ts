@@ -1,7 +1,15 @@
 import { SessionRepository } from "@/lib/domain/repository";
-import { InterviewSession, SessionSummary, SessionStatus, Question, Answer } from "@/lib/domain/types";
+import { InterviewSession, Answer, Question, SessionSummary, SessionStatus } from "@/lib/domain/types";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { Logger } from "@/lib/logger";
+import { decrypt } from "@/lib/server/encryption";
+
+interface SessionIntake {
+    candidate?: { firstName?: string; lastName?: string; name?: string };
+    invite_token?: string;
+    viewed_at?: number;
+    entered_initials?: string;
+}
 
 export class SupabaseSessionRepository implements SessionRepository {
     async create(session: InterviewSession): Promise<void> {
@@ -13,7 +21,7 @@ export class SupabaseSessionRepository implements SessionRepository {
     async listByRecruiter(recruiterId: string): Promise<SessionSummary[]> {
         const supabase = createClient();
 
-        // 1. Fetch Sessions
+        // 1. Fetch Sessions with Answers details for granular counts
         const { data: sessions, error } = await supabase
             .from('sessions')
             .select(`
@@ -21,7 +29,9 @@ export class SupabaseSessionRepository implements SessionRepository {
                 target_role,
                 status,
                 created_at,
-                intake_json
+                intake_json,
+                questions(count),
+                answers(submitted_at)
             `)
             .eq('recruiter_id', recruiterId)
             .order('created_at', { ascending: false });
@@ -34,27 +44,76 @@ export class SupabaseSessionRepository implements SessionRepository {
         if (!sessions) return [];
 
         // 2. Map to Summary
-        // Note: For counts, we would need to join or aggregate.
-        // For MVP/performance, we might skip counts or fetch them separately if critical.
-        // Let's do a lightweight fetch for counts if needed, but for now 0 is fine or we can do a second query.
-        // Actually, let's just return basic info first as getting counts for ALL sessions might be heavy without a view.
-
-        return sessions.map((s: { session_id: string; target_role: string; status: SessionStatus; created_at: string; intake_json?: { candidate?: { firstName?: string; lastName?: string; name?: string } } }) => {
-            const c = s.intake_json?.candidate || {};
+        return sessions.map((s: {
+            session_id: string;
+            target_role: string;
+            status: string;
+            created_at: string;
+            intake_json: unknown;
+            questions?: { count: number }[];
+            answers?: { submitted_at: string | null }[]
+        }) => {
+            const intake = s.intake_json as SessionIntake || {};
+            const c = intake.candidate || {};
             const candidateName = (c.firstName && c.lastName)
                 ? `${c.firstName} ${c.lastName}`
                 : (c.name || "Anonymous Candidate");
+
+            const inviteToken = intake.invite_token ? decrypt(intake.invite_token) : undefined;
+            const viewedAt = intake.viewed_at as number | undefined;
+
+            // Extract counts correctly from Supabase response
+            const questionCount = s.questions?.[0]?.count || 0;
+            const answers = s.answers || [];
+            const answerCount = answers.length;
+            const submittedCount = answers.filter((a: { submitted_at: string | null }) => !!a.submitted_at).length;
+
+            // Derived Status for consistency (will be further refined in UI)
+            let derivedStatus = s.status as SessionStatus;
+            if (s.status === 'NOT_STARTED' && answerCount > 0) {
+                derivedStatus = 'IN_SESSION';
+            } else if (s.status === 'IN_SESSION' && submittedCount === questionCount && questionCount > 0) {
+                derivedStatus = 'COMPLETED';
+            }
 
             return {
                 id: s.session_id,
                 candidateName,
                 role: s.target_role,
-                status: s.status,
+                status: derivedStatus,
                 createdAt: new Date(s.created_at).getTime(),
-                questionCount: 0, // Placeholder
-                answerCount: 0    // Placeholder
+                questionCount,
+                answerCount,
+                submittedCount,
+                viewedAt,
+                enteredInitials: intake.entered_initials as string | undefined,
+                inviteToken
             };
         });
+    }
+
+    async markViewed(sessionId: string): Promise<void> {
+        const supabase = createAdminClient();
+        const { data: current, error: fetchError } = await supabase
+            .from('sessions')
+            .select('intake_json')
+            .eq('session_id', sessionId)
+            .single();
+
+        if (fetchError || !current) return;
+
+        const intake = current.intake_json || {};
+        if (intake.viewed_at) return; // Already marked
+
+        await supabase
+            .from('sessions')
+            .update({
+                intake_json: {
+                    ...intake,
+                    viewed_at: Date.now()
+                }
+            })
+            .eq('session_id', sessionId);
     }
 
     async get(id: string): Promise<InterviewSession | null> {
@@ -177,13 +236,15 @@ export class SupabaseSessionRepository implements SessionRepository {
             initialsRequired,
             candidateName,
             enteredInitials,
+            viewedAt: intake.viewed_at,
             candidate: {
                 firstName: c.firstName || "",
                 lastName: c.lastName || "",
                 email: c.email || ""
             },
             engagedTimeSeconds: intake.engaged_time_seconds || 0,
-            intakeData: intake
+            intakeData: intake,
+            inviteToken: intake.invite_token ? decrypt(intake.invite_token) : undefined
         };
     }
 
@@ -467,8 +528,12 @@ export class SupabaseSessionRepository implements SessionRepository {
     }
 
     async delete(id: string): Promise<void> {
-        // Use createClient directly
-        const supabaseClient = createClient();
-        await supabaseClient.from('sessions').delete().eq('session_id', id);
+        const supabaseClient = createAdminClient();
+        const { error } = await supabaseClient.from('sessions').delete().eq('session_id', id);
+        if (error) {
+            Logger.error(`[SessionRepo] Failed to delete session ${id}:`, error);
+            throw new Error(`Failed to delete session: ${error.message}`);
+        }
+        Logger.info(`[SessionRepo] Deleted session ${id}`);
     }
 }

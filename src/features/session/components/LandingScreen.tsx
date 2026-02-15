@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button"
 import { Clock, ShieldCheck } from "lucide-react"
+import { audioEngine } from '@/features/audio/audio-engine';
 
 interface LandingScreenProps {
     onStart: () => void;
@@ -64,7 +65,7 @@ export default function LandingScreen({ onStart, role = "Candidate" }: LandingSc
                 <div className="pt-4 pb-2 sticky bottom-0 bg-background/95 backdrop-blur-sm border-t md:border-t-0 md:bg-transparent">
                     <Button
                         size="lg"
-                        onClick={onStart}
+                        onClick={() => { audioEngine.unlock(); onStart(); }}
                         className="w-full py-6 text-lg rounded-xl transition-all duration-200 shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground hover:-translate-y-0.5 h-auto"
                     >
                         Start Practice Session

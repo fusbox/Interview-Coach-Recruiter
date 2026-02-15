@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { audioEngine } from '@/features/audio/audio-engine';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
@@ -23,6 +24,8 @@ export default function InitialsScreen() {
     const handleBegin = async () => {
         if (initials.length > 0) {
             setIsStarting(true);
+            // Unlock AudioContext on this user gesture for stable TTS playback
+            audioEngine.unlock();
             try {
                 await submitInitials(initials);
             } catch (err) {
